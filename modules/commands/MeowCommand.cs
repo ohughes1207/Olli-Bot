@@ -86,7 +86,10 @@ namespace self_bot.modules.commands
                 await ctx.Channel.DeleteMessagesAsync(x_Messages_del);
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"---PURGE COMPLETE---\n{x_Messages_del.Count()} MESSAGES DELETED\n---PURGE COMPLETE---"));
             }
-
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error executing command..\n------- EXCEPTION -------\n {ex.Message}\n------- EXCEPTION -------");
+            }
         }
     }
 }
