@@ -46,7 +46,6 @@ namespace self_bot.modules.commands
 
                 if (IsOn==true)
                 {
-                    Console.WriteLine("2");
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("-----BEEP-----\n-----BOOP-----\nKITTENATOR ONLINE"));
                     _clientInstance.MessageCreated += TestMessage;
                 }
@@ -71,6 +70,23 @@ namespace self_bot.modules.commands
             {
                 await e.Message.RespondAsync($"{meow}");
             }
+        }
+        [SlashCommand("purgekittenator", "Purge kittenator spam")]
+        public async Task PurgeKittenator(InteractionContext ctx, [Option("amount", "Amount of messages to purge")] long x)
+        {
+            try
+            {
+                int amount = (int)x;
+                var messageList = await ctx.Channel.GetMessagesAsync(500);
+                var filteredMessages =  from m in messageList
+                                        where m.Author.Id == BotID && m.Content.Contains()
+                                        select m;
+
+                var x_Messages_del = filteredMessages.Take(amount);
+                await ctx.Channel.DeleteMessagesAsync(x_Messages_del);
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"---PURGE COMPLETE---\n{x_Messages_del.Count()} MESSAGES DELETED\n---PURGE COMPLETE---"));
+            }
+
         }
     }
 }
