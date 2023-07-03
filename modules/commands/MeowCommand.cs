@@ -10,9 +10,8 @@ namespace self_bot.modules.commands
 {
     internal class MeowCommand : ApplicationCommandModule
     {
-        private static DiscordClient _clientInstance => Bot.Client;
+        private static DiscordClient clientInstance => Bot.Client;
         private DiscordUser _user;
-        private ulong BotID = 1118358168708329543;
 
 
         private static bool IsOn = false;
@@ -23,12 +22,12 @@ namespace self_bot.modules.commands
         {
             try
             {
-                if (user.Id == BotID)
+                if (user.Id == Bot.Config.BotID)
                 {
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("YOU THINK YOU CAN KITTENATOR THE KITTEN!?\n-----FOOL DETECTED-----"));
                     return;
                 }
-                if (user.Id == 119904333750861824)
+                if (user.Id == Bot.Config.OwnerID)
                 {
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("YOU THINK I WILL TURN ON THE MAKER!?\n-----FOOL DETECTED-----"));
                     return;
@@ -37,7 +36,7 @@ namespace self_bot.modules.commands
                 {
                     IsOn=!IsOn;
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Kittenator shutting down"));
-                    _clientInstance.MessageCreated -= TestMessage;
+                    clientInstance.MessageCreated -= TestMessage;
                     return;
                 }
                 Console.WriteLine(user.Id);
@@ -47,14 +46,14 @@ namespace self_bot.modules.commands
                 if (IsOn==true)
                 {
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("-----BEEP-----\n-----BOOP-----\nKITTENATOR ONLINE"));
-                    _clientInstance.MessageCreated += TestMessage;
+                    clientInstance.MessageCreated += TestMessage;
                 }
 
                 else if (IsOn==false)
 
                 {
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Kittenator shutting down"));
-                    _clientInstance.MessageCreated -= TestMessage;
+                    clientInstance.MessageCreated -= TestMessage;
                 }
             }
             catch (Exception ex)
@@ -79,7 +78,7 @@ namespace self_bot.modules.commands
                 int amount = (int)x;
                 var messageList = await ctx.Channel.GetMessagesAsync(500);
                 var filteredMessages =  from m in messageList
-                                        where m.Author.Id == BotID && m.Content.Contains()
+                                        where m.Author.Id == Bot.Config.BotID && m.Content.Contains()
                                         select m;
 
                 var x_Messages_del = filteredMessages.Take(amount);
