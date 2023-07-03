@@ -2,12 +2,13 @@ using System.Text.Json;
 using DSharpPlus;
 using DSharpPlus.EventArgs;
 using DSharpPlus.SlashCommands;
-using JsonConfig;
+using System.Text.Json.Serialization;
 
 namespace self_bot
 {
     public class Bot
     {
+        public static Config Config {get; private set;}
         public static DiscordClient Client { get; private set; }
         public SlashCommandsExtension Slash { get; private set; }
         
@@ -15,25 +16,33 @@ namespace self_bot
         {
             try
             {
-            var config = InitializeConfig();
-            
-            Client = new DiscordClient(config);
+                await InitializeConfig();
 
-            Client.Ready += OnClientReady;
-            
-            
-            var slashConfig = new SlashCommandsConfiguration
-            {
+                Console.Write(Config.OwnerID);
+
+                var clientConfig = new DiscordConfiguration
+                {
+                    Token = Config.Token,
+                    TokenType = TokenType.Bot,
+                    AutoReconnect = true
+                };
                 
-            };
+                Client = new DiscordClient(clientConfig);
 
-            Slash = Client.UseSlashCommands(slashConfig);
+                Client.Ready += OnClientReady;
+                
+                
+                var slashConfig = new SlashCommandsConfiguration
+                {
+                    
+                };
 
-            SlashRegistry.RegisterCommands(Slash);
+                Slash = Client.UseSlashCommands(slashConfig);
 
-            await Client.ConnectAsync();
-            await Task.Delay(-1);
+                SlashRegistry.RegisterCommands(Slash);
 
+                await Client.ConnectAsync();
+                await Task.Delay(-1);
             }
             catch (Exception ex)
             {
@@ -46,20 +55,25 @@ namespace self_bot
             return Task.CompletedTask;
         }
         
-        private static DiscordConfiguration InitializeConfig()
+        private Task InitializeConfig()
         {
-            var jsonString = File.ReadAllText("config.json");
+            var configFile = File.ReadAllText(@"config.json");
 
-            var configJson = JsonSerializer.Deserialize<ConfigJson>(jsonString);
+            Config = JsonSerializer.Deserialize<Config>(configFile);
 
-            var config = new DiscordConfiguration
-            {
-                Token = configJson.Token,
-                TokenType = TokenType.Bot,
-                AutoReconnect = true
-            };
-
-            return config;
+            return Task.CompletedTask;
         }
+    }
+    public readonly struct Config
+    {
+        //Rename JsonPropertyName to JsonProperty if Newtonsoft.json is prefered
+        [JsonPropertyName("token")]
+        public string Token { get; init; }
+        [JsonPropertyName("BotChannel")]
+        public ulong BotChannel { get; init; }
+        [JsonPropertyName("OwnerID")]
+        public ulong OwnerID { get; init; }
+        [JsonPropertyName("BotID")]
+        internal ulong BotID { get; init; }
     }
 }
