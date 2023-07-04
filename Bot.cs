@@ -55,25 +55,33 @@ namespace self_bot
             return Task.CompletedTask;
         }
         
-        private Task InitializeConfig()
+        private static Task InitializeConfig()
         {
             var configFile = File.ReadAllText(@"config.json");
-
             Config = JsonSerializer.Deserialize<Config>(configFile);
-
             return Task.CompletedTask;
         }
+
+        public static async Task SaveConfig()
+        {
+            var config = JsonSerializer.Serialize(Config, new JsonSerializerOptions { WriteIndented = true});
+            await File.WriteAllTextAsync($"config.json", config);
+        }
     }
-    public readonly struct Config
+    public class Config
     {
         //Rename JsonPropertyName to JsonProperty if Newtonsoft.json is prefered
-        [JsonPropertyName("token")]
+        //These properties cannot be modified through commands
+        [JsonPropertyName("Token")]
         public string Token { get; init; }
-        [JsonPropertyName("BotChannel")]
-        public ulong BotChannel { get; init; }
         [JsonPropertyName("OwnerID")]
         public ulong OwnerID { get; init; }
         [JsonPropertyName("BotID")]
-        internal ulong BotID { get; init; }
+        public ulong BotID { get; init; }
+        //Properties from here onwards can be modified through commands
+        [JsonPropertyName("BotChannel")]
+        public ulong? BotChannel { get; set; }
+        [JsonPropertyName("HBChannel")]
+        public ulong? HBChannel { get; set; }
     }
 }
