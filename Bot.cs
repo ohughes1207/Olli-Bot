@@ -71,6 +71,7 @@ namespace self_bot
     public class Config
     {
         //Rename JsonPropertyName to JsonProperty if Newtonsoft.json is prefered
+        
         //These properties cannot be modified through commands
         [JsonPropertyName("Token")]
         public string Token { get; init; }
@@ -78,6 +79,8 @@ namespace self_bot
         public ulong OwnerID { get; init; }
         [JsonPropertyName("BotID")]
         public ulong BotID { get; init; }
+
+
         //Properties from here onwards can be modified through commands
         [JsonPropertyName("BotChannel")]
         public ulong? BotChannel { get; set; }
