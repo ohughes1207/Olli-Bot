@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="DSharpPlus.SlashCommands" Version="5.0.0" />
     <PackageReference Include="DSharpPlus" Version="5.0.0" />
+    <PackageReference Include="PuppeteerSharp" Version="10.1.0" />
   </ItemGroup>
 
 </Project>
