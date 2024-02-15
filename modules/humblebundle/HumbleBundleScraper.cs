@@ -25,7 +25,7 @@ namespace self_bot.modules.humblebundle
 
             string HBurl = "https://www.humblebundle.com/games/controllerd-chaos";
             //string HBurl = "https://www.humblebundle.com/software/complete-python-mega-bundle-software?hmb_source=&hmb_medium=product_tile&hmb_campaign=mosaic_section_1_layout_index_1_layout_type_threes_tile_index_1_c_completepythonmegabundle_softwarebundle";
-            using var browser = await Puppeteer.LaunchAsync(new LaunchOptions
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions
             {
                 Headless = true,
                 DefaultViewport = new ViewPortOptions
