@@ -20,6 +20,12 @@ namespace self_bot.modules.data
 
         public string Author { get; set; }
 
+        public ulong AuthorID { get; set; }
+
+        public string? QuoteOrigin { get; set; }
+
         public string MessageType { get; set; }
+
+
     }
 }
