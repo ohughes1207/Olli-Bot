@@ -32,12 +32,14 @@ namespace self_bot
                 Client.Ready += OnClientReady;
                 
                 
-                var slashConfig = new SlashCommandsConfiguration
+                /*var slashConfig = new SlashCommandsConfiguration
                 {
                     
                 };
 
-                Slash = Client.UseSlashCommands(slashConfig);
+                Slash = Client.UseSlashCommands(slashConfig);*/
+
+                Slash = Client.UseSlashCommands();
 
                 SlashRegistry.RegisterCommands(Slash);
 
