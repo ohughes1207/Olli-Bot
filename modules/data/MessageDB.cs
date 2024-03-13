@@ -4,7 +4,7 @@ namespace self_bot.modules.data
 {
     public class MessageDB : DbContext
     {
-        public DbSet<Messages> Messages { get; set; }
+        public DbSet<Message> Messages { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -13,18 +13,20 @@ namespace self_bot.modules.data
         }
     }
 
-    public class Messages
+    public class Message
     {
-        public ulong Id { get; set; }
-        public string Message { get; set; }
+        public ulong ID { get; set; }
+        public ulong DiscordMessageID { get; set; }
 
-        public string Author { get; set; }
+        public required string Content { get; set; }
+
+        public required string Author { get; set; }
 
         public ulong AuthorID { get; set; }
 
         public string? QuoteOrigin { get; set; }
 
-        public string MessageType { get; set; }
+        public required string MessageType { get; set; }
 
 
     }
