@@ -76,7 +76,7 @@ namespace self_bot
         
         //These properties cannot be modified through commands
         [JsonPropertyName("Token")]
-        public string Token { get; init; }
+        public required string Token { get; init; }
         [JsonPropertyName("OwnerID")]
         public ulong OwnerID { get; init; }
         [JsonPropertyName("BotID")]
