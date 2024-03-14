@@ -14,9 +14,8 @@ namespace self_bot
             slash.RegisterCommands<SimpleCommands>();
             //slash.RegisterCommands<MeowCommand>();
             slash.RegisterCommands<AdminCommands>();
-            slash.RegisterCommands<SetCommands>();
-            slash.RegisterCommands<HumbleBundleCommands>();
-
+            //slash.RegisterCommands<SetCommands>();
+            //slash.RegisterCommands<HumbleBundleCommands>();
         }
     }
 }
