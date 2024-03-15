@@ -43,6 +43,9 @@ namespace self_bot.Migrations
                     b.Property<string>("QuoteOrigin")
                         .HasColumnType("TEXT");
 
+                    b.Property<ulong>("ServerID")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("ID");
 
                     b.ToTable("Messages");

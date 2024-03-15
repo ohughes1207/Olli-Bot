@@ -17,6 +17,7 @@ namespace self_bot.Migrations
                     ID = table.Column<ulong>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     DiscordMessageID = table.Column<ulong>(type: "INTEGER", nullable: false),
+                    ServerID = table.Column<ulong>(type: "INTEGER", nullable: false),
                     Content = table.Column<string>(type: "TEXT", nullable: false),
                     Author = table.Column<string>(type: "TEXT", nullable: false),
                     AuthorID = table.Column<ulong>(type: "INTEGER", nullable: false),

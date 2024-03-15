@@ -10,7 +10,7 @@ using self_bot.modules.data;
 namespace self_bot.Migrations
 {
     [DbContext(typeof(MessageDB))]
-    [Migration("20240315051539_Initial")]
+    [Migration("20240315051908_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -45,6 +45,9 @@ namespace self_bot.Migrations
 
                     b.Property<string>("QuoteOrigin")
                         .HasColumnType("TEXT");
+
+                    b.Property<ulong>("ServerID")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("ID");
 
