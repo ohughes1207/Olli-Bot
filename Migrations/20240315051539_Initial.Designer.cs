@@ -10,7 +10,7 @@ using self_bot.modules.data;
 namespace self_bot.Migrations
 {
     [DbContext(typeof(MessageDB))]
-    [Migration("20240313194747_Initial")]
+    [Migration("20240315051539_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
