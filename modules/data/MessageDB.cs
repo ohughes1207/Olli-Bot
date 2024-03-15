@@ -25,7 +25,7 @@ namespace self_bot.modules.data
 
         public ulong AuthorID { get; set; }
 
-        public string? QuoteOrigin { get; set; }
+        public required string MessageOrigin { get; set; }
 
         public required string MessageType { get; set; }
 
