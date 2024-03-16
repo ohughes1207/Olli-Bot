@@ -18,6 +18,7 @@ namespace self_bot.modules.data
         public ulong ID { get; set; }
         public ulong DiscordMessageID { get; set; }
         public ulong ServerID { get; set; }
+        public string? Title {get; set; }
 
         public required string Content { get; set; }
 
