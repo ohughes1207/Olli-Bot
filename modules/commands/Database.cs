@@ -25,10 +25,11 @@ namespace self_bot.modules.commands
             // Check if the message has attachments
             if (message.Attachments.Count > 0)
             {
+                responseContent += Environment.NewLine;
                 // For each attachment, add a new embed to the response
                 foreach (var attachment in message.Attachments)
                 {
-                    responseContent += $"{Environment.NewLine}{attachment.Url}";
+                    responseContent += $" {attachment.Url}";
                 }
             }
 
