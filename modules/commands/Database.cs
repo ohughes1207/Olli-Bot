@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Xml.XPath;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
-using DSharpPlus.SlashCommands.Attributes;
 
 namespace self_bot.modules.commands
 {
@@ -34,7 +28,7 @@ namespace self_bot.modules.commands
                 // For each attachment, add a new embed to the response
                 foreach (var attachment in message.Attachments)
                 {
-                    responseContent += $"{Environment.NewLine} {attachment.Url}";
+                    responseContent += $"{Environment.NewLine}{attachment.Url}";
                 }
             }
 
@@ -42,7 +36,6 @@ namespace self_bot.modules.commands
 
             // Send the response with the original message content and any attachments as embeds
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, responseBuilder);
-
         }
     }
 }
