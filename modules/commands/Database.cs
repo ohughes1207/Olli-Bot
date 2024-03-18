@@ -21,8 +21,15 @@ namespace self_bot.modules.commands
         {
             if (!ulong.TryParse(messageEntry, out ulong result))
             {
+                if (User != null)
+                {
                 await AddQuoteManual(ctx, messageEntry, User);
                 return;
+                }
+                else
+                {
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Entry unsuccessful, try again with a quote origin.").AsEphemeral());
+                }
             }
             await AddByID(ctx, messageEntry, Title, MessageType);
         }
@@ -67,7 +74,7 @@ namespace self_bot.modules.commands
 
                     await db.Messages.AddAsync(newMessage);
                     await db.SaveChangesAsync();
-                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Entry added to the database").AsEphemeral());
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Entry added to the database"));
                 }
             }
             catch (Exception ex)
