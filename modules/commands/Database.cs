@@ -1,6 +1,8 @@
+using System.Data.Common;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Mime;
+using System.Runtime.CompilerServices;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
@@ -10,22 +12,56 @@ namespace self_bot.modules.commands
 {
     internal class DatabaseCommands : ApplicationCommandModule
     {
-        [SlashCommand("AddDB", "Add an entry into the database")]
+        [SlashCommand("DBAddMessage", "Add a discord message to the database")]
         public async Task AddMessage(InteractionContext ctx,
-        [Option("message", "Message ID")] string MessageID,
-        [Option("Title", "Title")] string? Title = null,
-        [Choice("Meme", "Meme")] [Choice("Quote", "Quote")] [Choice("Other", "Other")] [Option("Type", "Type")] string? MessageType = null)
+        [Option("message", "Enter a message ID or quote content")] string messageEntry,
+        [Option("title", "Title (Optional)")] string? Title = null,
+        [Option("origin", "Quote origin (Optional)")] DiscordUser? User = null,
+        [Choice("Meme", "Meme")] [Choice("Quote", "Quote")] [Choice("Other", "Other")] [Option("Type", "Type (If no value set then will be implicitly determined)")] string? MessageType = null)
+        {
+            try
+            {
+                if (!ulong.TryParse(messageEntry, out ulong result))
+                {
+                    try
+                    {
+                        await AddQuoteManual(ctx, messageEntry, User);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                }
+                else
+                {
+                    try
+                    {
+
+                        await AddByID(ctx, messageEntry, Title, MessageType);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        private async Task AddByID(InteractionContext ctx, string messageID, string? Title, string? MessageType)
         {
             try
             {
                 var channel = ctx.Channel;
 
-                ulong messageUlong = Convert.ToUInt64(MessageID);
+                ulong messageUlong = Convert.ToUInt64(messageID);
                 var message = await channel.GetMessageAsync(messageUlong);
 
                 if (MessageType == null)
                 {
-                    MessageType = GetMessageType(message, MessageType);
+                    MessageType = GetMessageType(message);
                 }
 
                 var attList = new List<string>();
@@ -62,10 +98,59 @@ namespace self_bot.modules.commands
             {
                 Console.WriteLine(ex);
             }
+        }
+        
+        private async Task AddQuoteManual(InteractionContext ctx, string quoteContent, DiscordUser User)
+        {
+            try
+            {
+                using (var db = new MessageDB())
+                {
+                    var newQuote = new Message
+                    {
+                        ServerID = ctx.Guild.Id,
+                        Content = quoteContent,
+                        Author = ctx.User.Username,
+                        AuthorID = ctx.User.Id,
+                        MessageOriginID = User.Id,
+                        MessageType = "Quote",
+                        DateTimeAdded = DateTime.UtcNow
+                    };
+
+                    await db.Messages.AddAsync(newQuote);
+                    await db.SaveChangesAsync();
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Entry added to the database").AsEphemeral());
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
 
         }
 
-        private string GetMessageType(DiscordMessage message, string? messageType)
+        [SlashCommand("DBCall", "Call entry by ID from the database")]
+        public async Task CallMessage(InteractionContext ctx,
+        [Option("Id", "Message ID")] double DbID)
+        {
+            using (var db = new MessageDB())
+            {
+                var queriedMessage = db.Messages.AsQueryable().Where(x => x.ID == DbID && x.ServerID == ctx.Guild.Id).FirstOrDefault();
+
+                if (queriedMessage.DiscordMessageID == 0 && queriedMessage.MessageType=="Quote")
+                {
+                    DiscordMember quoteOrigin = await ctx.Guild.GetMemberAsync(queriedMessage.MessageOriginID);
+                    string responseContent = $"\"{queriedMessage.Content}\" - {quoteOrigin.DisplayName}";
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(responseContent));
+                }
+                else
+                {
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(queriedMessage.Content));
+                }
+            }
+
+        }
+        private string GetMessageType(DiscordMessage message)
         {
             if (message.Attachments.Count > 0 )
             {
