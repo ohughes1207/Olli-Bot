@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 
 namespace self_bot.modules.data
@@ -21,7 +23,13 @@ namespace self_bot.modules.data
         public string? Title {get; set; }
 
         public required string Content { get; set; }
-
+        public string? Attachments { get; set; }
+        [NotMapped]
+        public List<string> AttachmentUrls
+        {
+            get => Attachments == null ? new List<string>() : JsonSerializer.Deserialize<List<string>>(Attachments);
+            set => Attachments = JsonSerializer.Serialize(value);
+        }
         public required string Author { get; set; }
 
         public ulong AuthorID { get; set; }
