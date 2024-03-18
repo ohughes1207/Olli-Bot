@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -14,15 +15,18 @@ namespace self_bot.Migrations
                 name: "Messages",
                 columns: table => new
                 {
-                    ID = table.Column<ulong>(type: "INTEGER", nullable: false)
+                    ID = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     DiscordMessageID = table.Column<ulong>(type: "INTEGER", nullable: false),
                     ServerID = table.Column<ulong>(type: "INTEGER", nullable: false),
+                    Title = table.Column<string>(type: "TEXT", nullable: true),
                     Content = table.Column<string>(type: "TEXT", nullable: false),
+                    Attachments = table.Column<string>(type: "TEXT", nullable: true),
                     Author = table.Column<string>(type: "TEXT", nullable: false),
                     AuthorID = table.Column<ulong>(type: "INTEGER", nullable: false),
-                    QuoteOrigin = table.Column<string>(type: "TEXT", nullable: true),
-                    MessageType = table.Column<string>(type: "TEXT", nullable: false)
+                    MessageOriginID = table.Column<ulong>(type: "INTEGER", nullable: false),
+                    MessageType = table.Column<string>(type: "TEXT", nullable: false),
+                    DateTimeAdded = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {

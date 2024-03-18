@@ -17,7 +17,7 @@ namespace self_bot.modules.data
 
     public class Message
     {
-        public ulong ID { get; set; }
+        public int ID { get; set; }
         public ulong DiscordMessageID { get; set; }
         public ulong ServerID { get; set; }
         public string? Title {get; set; }
@@ -27,17 +27,16 @@ namespace self_bot.modules.data
         [NotMapped]
         public List<string> AttachmentUrls
         {
-            get => Attachments == null ? new List<string>() : JsonSerializer.Deserialize<List<string>>(Attachments);
+            get => Attachments == null ? new List<string>() : JsonSerializer.Deserialize<List<string>>(Attachments) ?? new List<string>();
             set => Attachments = JsonSerializer.Serialize(value);
         }
         public required string Author { get; set; }
 
         public ulong AuthorID { get; set; }
 
-        public required string MessageOrigin { get; set; }
+        public ulong MessageOriginID { get; set; }
 
         public required string MessageType { get; set; }
-
-
+        public required DateTime DateTimeAdded {get; set; }
     }
 }
