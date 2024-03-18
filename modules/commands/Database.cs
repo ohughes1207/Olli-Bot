@@ -19,36 +19,12 @@ namespace self_bot.modules.commands
         [Option("origin", "Quote origin (Optional)")] DiscordUser? User = null,
         [Choice("Meme", "Meme")] [Choice("Quote", "Quote")] [Choice("Other", "Other")] [Option("Type", "Type (If no value set then will be implicitly determined)")] string? MessageType = null)
         {
-            try
+            if (!ulong.TryParse(messageEntry, out ulong result))
             {
-                if (!ulong.TryParse(messageEntry, out ulong result))
-                {
-                    try
-                    {
-                        await AddQuoteManual(ctx, messageEntry, User);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.Message);
-                    }
-                }
-                else
-                {
-                    try
-                    {
-
-                        await AddByID(ctx, messageEntry, Title, MessageType);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.Message);
-                    }
-                }
+                await AddQuoteManual(ctx, messageEntry, User);
+                return;
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+            await AddByID(ctx, messageEntry, Title, MessageType);
         }
         private async Task AddByID(InteractionContext ctx, string messageID, string? Title, string? MessageType)
         {
