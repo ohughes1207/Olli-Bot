@@ -22,7 +22,7 @@ namespace self_bot.modules.data
         public ulong ServerID { get; set; }
         public string? Title {get; set; }
 
-        public required string Content { get; set; }
+        public string? Content { get; set; }
         public string? Attachments { get; set; }
         [NotMapped]
         public List<string> AttachmentUrls
