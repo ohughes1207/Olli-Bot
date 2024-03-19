@@ -12,28 +12,104 @@ namespace self_bot.modules.commands
 {
     internal class DatabaseCommands : ApplicationCommandModule
     {
-        [SlashCommand("DBAddMessage", "Add a discord message to the database")]
+        //Command to add entries to database
+        [SlashCommand("DBAdd", "Add a discord message to the database")]
         public async Task AddMessage(InteractionContext ctx,
         [Option("message", "Enter a message ID or quote content")] string messageEntry,
         [Option("title", "Title (Optional)")] string? Title = null,
-        [Option("origin", "Quote origin (Optional)")] DiscordUser? User = null,
+        [Option("origin", "Quote origin (Optional if using Message ID for input)")] DiscordUser? User = null,
         [Choice("Meme", "Meme")] [Choice("Quote", "Quote")] [Choice("Other", "Other")] [Option("Type", "Type (If no value set then will be implicitly determined)")] string? MessageType = null)
         {
+            ulong messageUlong = Convert.ToUInt64(messageEntry);
+            var message = await ctx.Channel.GetMessageAsync(messageUlong);
+            Console.WriteLine(message.Content.ToString());
+            //If input for message is not convertable to ulong assume it is a manually entered quote
             if (!ulong.TryParse(messageEntry, out ulong result))
             {
-                if (User != null)
+                //If manually entered quote has no origin then respond with unsuccessful message
+                if (User == null)
                 {
-                await AddQuoteManual(ctx, messageEntry, User);
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Entry unsuccessful, try again with a quote origin.").AsEphemeral());
+                    return;
+                }
+                //Add the quote to the database
+                await DatabaseLogic.AddQuoteManual(ctx, messageEntry, User);
                 return;
+            }
+            //If input for message is ulong then add to database from the messageID
+            await DatabaseLogic.AddByID(ctx, messageEntry, Title, MessageType);
+        }
+        //Command to call an entry from the database based on ID
+        [SlashCommand("DBCall", "Call entry by ID from the database")]
+        public async Task CallMessage(InteractionContext ctx,
+        [Option("Id", "Message ID")] double DbID)
+        {
+            using (var db = new MessageDB())
+            {
+                var queriedMessage = db.Messages.AsQueryable().Where(x => x.ID == DbID && x.ServerID == ctx.Guild.Id).FirstOrDefault();
+
+                if (queriedMessage.DiscordMessageID == 0 && queriedMessage.MessageType=="Quote")
+                {
+                    DiscordMember quoteOrigin = await ctx.Guild.GetMemberAsync(queriedMessage.MessageOriginID);
+                    string responseContent = $"\"{queriedMessage.Content}\" - {quoteOrigin.DisplayName}";
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(responseContent));
                 }
                 else
                 {
-                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Entry unsuccessful, try again with a quote origin.").AsEphemeral());
+                    var responseBuilder = new DiscordInteractionResponseBuilder();
+                    string responseContent = queriedMessage.Content;
+                    
+                    if (queriedMessage.AttachmentUrls.Count > 0)
+                    {
+                        responseContent+=Environment.NewLine;
+                        foreach (var attachment in queriedMessage.AttachmentUrls)
+                        {
+                            responseContent+=attachment;
+                        }
+                    }
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(responseContent));
                 }
             }
-            await AddByID(ctx, messageEntry, Title, MessageType);
+
         }
-        private async Task AddByID(InteractionContext ctx, string messageID, string? Title, string? MessageType)
+        [SlashCommand("DBDelete", "Delete an entry from the database")]
+        public async Task DeleteEntry(InteractionContext ctx,
+        [Option("Id", "Message ID")] double DbID)
+        {
+            using (var db = new MessageDB())
+            {
+                var queriedMessage = db.Messages.AsQueryable().Where(x => x.ID == DbID && x.ServerID == ctx.Guild.Id).FirstOrDefault();
+
+                if (queriedMessage.AuthorID!=ctx.User.Id && !ctx.Member.Permissions.HasPermission(Permissions.Administrator))
+                {
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(ctx.Member.Permissions.HasPermission(Permissions.Administrator).ToString()));
+                    return;
+                }
+                db.Messages.Remove(queriedMessage);
+                db.SaveChanges();
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Deleted entry").AsEphemeral());
+            }
+        }
+    }
+
+    internal class DatabaseLogic
+    {
+        internal static string GetMessageType(DiscordMessage message)
+        {
+            if (message.Attachments.Count > 0 )
+            {
+                return "Meme";
+            }
+            else if (message.Content != null)
+            {
+                return "Quote";
+            }
+            else
+            {
+                return "Other";
+            }
+        }
+        internal static async Task AddByID(InteractionContext ctx, string messageID, string? Title, string? MessageType)
         {
             try
             {
@@ -83,7 +159,7 @@ namespace self_bot.modules.commands
             }
         }
         
-        private async Task AddQuoteManual(InteractionContext ctx, string quoteContent, DiscordUser User)
+        internal static async Task AddQuoteManual(InteractionContext ctx, string quoteContent, DiscordUser User)
         {
             try
             {
@@ -102,7 +178,7 @@ namespace self_bot.modules.commands
 
                     await db.Messages.AddAsync(newQuote);
                     await db.SaveChangesAsync();
-                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Entry added to the database").AsEphemeral());
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Entry added to the database"));
                 }
             }
             catch (Exception ex)
@@ -110,39 +186,6 @@ namespace self_bot.modules.commands
                 Console.WriteLine(ex.Message);
             }
 
-        }
-
-        [SlashCommand("DBCall", "Call entry by ID from the database")]
-        public async Task CallMessage(InteractionContext ctx,
-        [Option("Id", "Message ID")] double DbID)
-        {
-            using (var db = new MessageDB())
-            {
-                var queriedMessage = db.Messages.AsQueryable().Where(x => x.ID == DbID && x.ServerID == ctx.Guild.Id).FirstOrDefault();
-
-                if (queriedMessage.DiscordMessageID == 0 && queriedMessage.MessageType=="Quote")
-                {
-                    DiscordMember quoteOrigin = await ctx.Guild.GetMemberAsync(queriedMessage.MessageOriginID);
-                    string responseContent = $"\"{queriedMessage.Content}\" - {quoteOrigin.DisplayName}";
-                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(responseContent));
-                }
-                else
-                {
-                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(queriedMessage.Content));
-                }
-            }
-
-        }
-        private string GetMessageType(DiscordMessage message)
-        {
-            if (message.Attachments.Count > 0 )
-            {
-                return "Meme";
-            }
-            else
-            {
-                return "Quote";
-            }
         }
     }
 }
