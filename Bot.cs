@@ -24,7 +24,8 @@ namespace self_bot
                 {
                     Token = Config.Token,
                     TokenType = TokenType.Bot,
-                    AutoReconnect = true
+                    AutoReconnect = true,
+                    Intents = DiscordIntents.All
                 };
                 
                 Client = new DiscordClient(clientConfig);
