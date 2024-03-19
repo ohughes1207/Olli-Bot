@@ -20,9 +20,6 @@ namespace self_bot.modules.commands
         [Option("origin", "Quote origin (Optional if using Message ID for input)")] DiscordUser? User = null,
         [Choice("Meme", "Meme")] [Choice("Quote", "Quote")] [Choice("Other", "Other")] [Option("Type", "Type (If no value set then will be implicitly determined)")] string? MessageType = null)
         {
-            ulong messageUlong = Convert.ToUInt64(messageEntry);
-            var message = await ctx.Channel.GetMessageAsync(messageUlong);
-            Console.WriteLine(message.Content.ToString());
             //If input for message is not convertable to ulong assume it is a manually entered quote
             if (!ulong.TryParse(messageEntry, out ulong result))
             {
@@ -96,7 +93,7 @@ namespace self_bot.modules.commands
     {
         internal static string GetMessageType(DiscordMessage message)
         {
-            if (message.Attachments.Count > 0 )
+            if (message.Attachments.Count > 0  || message.Embeds.Count > 0)
             {
                 return "Meme";
             }
@@ -122,14 +119,26 @@ namespace self_bot.modules.commands
                 {
                     MessageType = GetMessageType(message);
                 }
-
+                string messageContent = message.Content;
                 var attList = new List<string>();
+
+                //Attachment is a file upload attached to a message
                 if (message.Attachments.Count > 0)
                 {
                     foreach (var attachment in message.Attachments)
                     {
                         attList.Add(attachment.Url);
                     }
+                }
+                //Embed is a image/video embedded from a link
+                if (message.Embeds.Count > 0)
+                {
+                    foreach (var embed in message.Embeds)
+                    {
+                        attList.Add(embed.Url.AbsoluteUri);
+                        messageContent = messageContent.Replace(embed.Url.AbsoluteUri, "");
+                    }
+                    messageContent=messageContent.Trim();
                 }
 
                 using (var db = new MessageDB())
@@ -139,7 +148,7 @@ namespace self_bot.modules.commands
                         DiscordMessageID = message.Id,
                         ServerID = ctx.Guild.Id,
                         Title = Title,
-                        Content = message.Content,
+                        Content = messageContent,
                         AttachmentUrls = attList,
                         Author = ctx.User.Username,
                         AuthorID = ctx.User.Id,
@@ -150,7 +159,7 @@ namespace self_bot.modules.commands
 
                     await db.Messages.AddAsync(newMessage);
                     await db.SaveChangesAsync();
-                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Entry added to the database"));
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Entry added to the database").AsEphemeral());
                 }
             }
             catch (Exception ex)
