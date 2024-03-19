@@ -7,9 +7,12 @@ namespace self_bot.modules.commands
     public class SimpleCommands : ApplicationCommandModule
     {        
         [SlashCommand("avatar", "Get the avatar of the specified user")]
-        public static async Task Avatar(InteractionContext ctx, [Option("user", "Specified user")] DiscordUser user)
+        public static async Task Avatar(InteractionContext ctx, [Option("user", "Specified user")] DiscordUser? user = null)
         {
-
+            if (user==null)
+            {
+                user=ctx.User;
+            }
             var member = await ctx.Guild.GetMemberAsync(user.Id);
             var nickname = member.Nickname ?? member.DisplayName ?? user.Username;
             
