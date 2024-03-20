@@ -29,11 +29,11 @@ namespace self_bot.modules.commands
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Entry unsuccessful, try again with a quote origin.").AsEphemeral());
                     return;
                 }
-                //Add the quote to the database
+                //Call method to add manually entered quotes
                 await DatabaseLogic.AddQuoteManual(ctx, messageEntry, User);
                 return;
             }
-            //If input for message is ulong then add to database from the messageID
+            //If input for message is ulong then call method to add method to database from it's Id
             await DatabaseLogic.AddByID(ctx, messageEntry, Title, MessageType);
         }
         //Command to call an entry from the database based on ID
@@ -44,16 +44,23 @@ namespace self_bot.modules.commands
             using (var db = new MessageDB())
             {
                 var queriedMessage = db.Messages.AsQueryable().Where(x => x.ID == DbID && x.ServerID == ctx.Guild.Id).FirstOrDefault();
+                var responseBuilder = new DiscordInteractionResponseBuilder();
+
+                if (queriedMessage==null)
+                {
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, responseBuilder.WithContent("No message found").AsEphemeral());
+                    return;
+                }
 
                 if (queriedMessage.DiscordMessageID == 0 && queriedMessage.MessageType=="Quote")
                 {
                     DiscordMember quoteOrigin = await ctx.Guild.GetMemberAsync(queriedMessage.MessageOriginID);
                     string responseContent = $"\"{queriedMessage.Content}\" - {quoteOrigin.DisplayName}";
-                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(responseContent));
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, responseBuilder.WithContent(responseContent));
                 }
                 else
                 {
-                    var responseBuilder = new DiscordInteractionResponseBuilder();
+
                     string responseContent = queriedMessage.Content;
                     
                     if (queriedMessage.AttachmentUrls.Count > 0)
@@ -64,7 +71,7 @@ namespace self_bot.modules.commands
                             responseContent+=attachment;
                         }
                     }
-                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(responseContent));
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, responseBuilder.WithContent(responseContent));
                 }
             }
 
