@@ -1,6 +1,7 @@
 using System.Data.Common;
 using System.Diagnostics;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Runtime.CompilerServices;
 using DSharpPlus;
@@ -92,6 +93,28 @@ namespace self_bot.modules.commands
                 db.Messages.Remove(queriedMessage);
                 db.SaveChanges();
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Deleted entry").AsEphemeral());
+            }
+        }
+        [SlashCommand("DBUpdate", "Update entry in database")]
+        public async Task UpdateEntry(InteractionContext ctx,
+        [Option("Id", "Message ID")] double DbID,
+        [Option("Title", "Updated title")] string? Title = null,
+        [Choice("Meme", "Meme")] [Choice("Quote", "Quote")] [Choice("Other", "Other")] [Option("Type", "Updated type")] string? MessageType = null)
+        {
+            using (var db = new MessageDB())
+            {
+                var queriedMessage = db.Messages.AsQueryable().Where(x => x.ID == DbID && x.ServerID == ctx.Guild.Id).FirstOrDefault();
+
+                if (queriedMessage == null || (Title == null && MessageType == null))
+                {
+                    string x="wat";
+                    if (ctx.Guild.Id==529624471351590922)
+                    {
+                        x=":lego_yoda:";
+                    }
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(x).AsEphemeral());
+                    return;
+                }
             }
         }
     }
