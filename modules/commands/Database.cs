@@ -117,6 +117,38 @@ namespace self_bot.modules.commands
                 }
             }
         }
+        [SlashCommand("DBList", "List entries in database")]
+        public async Task ListEntries(InteractionContext ctx,
+        [Option("User", "entries from user")] DiscordUser? user = null)
+        {
+            using (var db = new MessageDB())
+            {
+                var messages = db.Messages.Where(m=> m.GuildId == ctx.Guild.Id);
+                /*
+                if (user!=null)
+                {
+                    messages=messages.Where(m => m.AuthorId == user.Id);
+                }*/
+
+                var messageList = messages.ToList();
+
+
+                var idString = string.Join("\n",messages.Select(m => m.Id));
+                var titleString = string.Join("\n",messages.Select(m => m.Title ?? "N/A"));
+                var typeString = string.Join("\n", messages.Select(m => m.MessageType));
+                var authorString = string.Join("\n", messages.Select(m => m.Author));
+
+                var embed = new DiscordEmbedBuilder();
+
+                //Limited to 3 fields inline due to Discord css
+                embed.AddField("Id", idString, true);
+                embed.AddField("Title", titleString, true);
+                embed.AddField("Type", typeString, true);
+                //embed.AddField("Author", authorString, true);
+
+                await ctx.CreateResponseAsync(embed.Build());
+            }
+        }
     }
 
     internal class DatabaseLogic
@@ -217,7 +249,7 @@ namespace self_bot.modules.commands
 
                     await db.Messages.AddAsync(newQuote);
                     await db.SaveChangesAsync();
-                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Entry added to the database"));
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Entry added to the database").AsEphemeral());
                 }
             }
             catch (Exception ex)
