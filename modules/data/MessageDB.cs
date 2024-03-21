@@ -17,9 +17,9 @@ namespace self_bot.modules.data
 
     public class Message
     {
-        public int ID { get; set; }
-        public ulong DiscordMessageID { get; set; }
-        public ulong ServerID { get; set; }
+        public int Id { get; set; }
+        public ulong? DiscordMessageId { get; set; }
+        public ulong GuildId { get; set; }
         public string? Title {get; set; }
 
         public string? Content { get; set; }
@@ -32,9 +32,9 @@ namespace self_bot.modules.data
         }
         public required string Author { get; set; }
 
-        public ulong AuthorID { get; set; }
+        public ulong AuthorId { get; set; }
 
-        public ulong MessageOriginID { get; set; }
+        public ulong MessageOriginId { get; set; }
 
         public required string MessageType { get; set; }
         public required DateTime DateTimeAdded {get; set; }

@@ -44,7 +44,7 @@ namespace self_bot.modules.commands
         {
             using (var db = new MessageDB())
             {
-                var queriedMessage = db.Messages.AsQueryable().Where(x => x.ID == DbID && x.ServerID == ctx.Guild.Id).FirstOrDefault();
+                var queriedMessage = db.Messages.AsQueryable().Where(x => x.Id == DbID && x.GuildId == ctx.Guild.Id).FirstOrDefault();
                 var responseBuilder = new DiscordInteractionResponseBuilder();
 
                 if (queriedMessage==null)
@@ -53,9 +53,9 @@ namespace self_bot.modules.commands
                     return;
                 }
 
-                if (queriedMessage.DiscordMessageID == 0 && queriedMessage.MessageType=="Quote")
+                if (queriedMessage.DiscordMessageId == null && queriedMessage.MessageType=="Quote")
                 {
-                    DiscordMember quoteOrigin = await ctx.Guild.GetMemberAsync(queriedMessage.MessageOriginID);
+                    DiscordMember quoteOrigin = await ctx.Guild.GetMemberAsync(queriedMessage.MessageOriginId);
                     string responseContent = $"\"{queriedMessage.Content}\" - {quoteOrigin.DisplayName}";
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, responseBuilder.WithContent(responseContent));
                 }
@@ -83,9 +83,9 @@ namespace self_bot.modules.commands
         {
             using (var db = new MessageDB())
             {
-                var queriedMessage = db.Messages.AsQueryable().Where(x => x.ID == DbID && x.ServerID == ctx.Guild.Id).FirstOrDefault();
+                var queriedMessage = db.Messages.AsQueryable().Where(x => x.Id == DbID && x.GuildId == ctx.Guild.Id).FirstOrDefault();
 
-                if (queriedMessage.AuthorID!=ctx.User.Id && !ctx.Member.Permissions.HasPermission(Permissions.Administrator))
+                if (queriedMessage.AuthorId!=ctx.User.Id && !ctx.Member.Permissions.HasPermission(Permissions.Administrator))
                 {
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(ctx.Member.Permissions.HasPermission(Permissions.Administrator).ToString()));
                     return;
@@ -103,7 +103,7 @@ namespace self_bot.modules.commands
         {
             using (var db = new MessageDB())
             {
-                var queriedMessage = db.Messages.AsQueryable().Where(x => x.ID == DbID && x.ServerID == ctx.Guild.Id).FirstOrDefault();
+                var queriedMessage = db.Messages.AsQueryable().Where(x => x.Id == DbID && x.GuildId == ctx.Guild.Id).FirstOrDefault();
 
                 if (queriedMessage == null || (Title == null && MessageType == null))
                 {
@@ -175,14 +175,14 @@ namespace self_bot.modules.commands
                 {
                     var newMessage = new Message
                     {
-                        DiscordMessageID = message.Id,
-                        ServerID = ctx.Guild.Id,
+                        DiscordMessageId = message.Id,
+                        GuildId = ctx.Guild.Id,
                         Title = Title,
                         Content = messageContent,
                         AttachmentUrls = attList,
                         Author = ctx.User.Username,
-                        AuthorID = ctx.User.Id,
-                        MessageOriginID = message.Author.Id,
+                        AuthorId = ctx.User.Id,
+                        MessageOriginId = message.Author.Id,
                         MessageType = MessageType,
                         DateTimeAdded = DateTime.UtcNow
                     };
@@ -206,11 +206,11 @@ namespace self_bot.modules.commands
                 {
                     var newQuote = new Message
                     {
-                        ServerID = ctx.Guild.Id,
+                        GuildId = ctx.Guild.Id,
                         Content = quoteContent,
                         Author = ctx.User.Username,
-                        AuthorID = ctx.User.Id,
-                        MessageOriginID = User.Id,
+                        AuthorId = ctx.User.Id,
+                        MessageOriginId = User.Id,
                         MessageType = "Quote",
                         DateTimeAdded = DateTime.UtcNow
                     };
