@@ -40,14 +40,26 @@ namespace self_bot.modules.commands
         //Command to call an entry from the database based on ID
         [SlashCommand("DBCall", "Call entry by ID from the database")]
         public async Task CallMessage(InteractionContext ctx,
-        [Option("Id", "Message ID")] double DbID)
+        [Option("Query", "Message ID or Title")] string query)
         {
             using (var db = new MessageDB())
             {
-                var queriedMessage = db.Messages.AsQueryable().Where(x => x.Id == DbID && x.GuildId == ctx.Guild.Id).FirstOrDefault();
+                var guildMessages = db.Messages.AsQueryable().Where(x=> x.GuildId == ctx.Guild.Id);
+                
+                var queriedMessage = default(Message);
+
+                if (int.TryParse(query, out int intQuery))
+                {
+                    queriedMessage = guildMessages.Where(x => x.Id == intQuery).FirstOrDefault();
+                }
+                else
+                {
+                    queriedMessage = guildMessages.Where(x => x.Title.ToLower().Contains(query.ToLower())).FirstOrDefault();
+
+                }
                 var responseBuilder = new DiscordInteractionResponseBuilder();
 
-                if (queriedMessage==null)
+                if (queriedMessage == null)
                 {
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, responseBuilder.WithContent("No message found").AsEphemeral());
                     return;
@@ -131,6 +143,12 @@ namespace self_bot.modules.commands
                 }*/
 
                 var messageList = messages.ToList();
+
+                if (messageList.Count == 0 )
+                {
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("No messages found").AsEphemeral());
+                    return;
+                }
 
 
                 var idString = string.Join("\n",messages.Select(m => m.Id));
