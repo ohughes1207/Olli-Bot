@@ -26,7 +26,7 @@ namespace self_bot.modules.admin
 
                 var x_Messages_del = filteredMessages.Take(amount);
                 await ctx.Channel.DeleteMessagesAsync(x_Messages_del);
-                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"---PURGE COMPLETE---\n{x_Messages_del.Count()} MESSAGES DELETED\n---PURGE COMPLETE---"));
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"---PURGE COMPLETE---\n{x_Messages_del.Count()} MESSAGES DELETED\n---PURGE COMPLETE---").AsEphemeral());
             }
             catch (Exception ex)
             {

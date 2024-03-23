@@ -12,10 +12,12 @@ namespace self_bot
             slash.RegisterCommands<Test_command>();
             slash.RegisterCommands<Test_command2>();
             slash.RegisterCommands<SimpleCommands>();
-            slash.RegisterCommands<MeowCommand>();
+            //slash.RegisterCommands<MeowCommand>();
             slash.RegisterCommands<AdminCommands>();
-            slash.RegisterCommands<SetCommands>();
-
+            slash.RegisterCommands<DatabaseCommands>();
+            slash.RegisterCommands<Emotes>();
+            //slash.RegisterCommands<SetCommands>();
+            //slash.RegisterCommands<HumbleBundleCommands>();
         }
     }
 }

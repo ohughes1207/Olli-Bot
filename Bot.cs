@@ -24,7 +24,8 @@ namespace self_bot
                 {
                     Token = Config.Token,
                     TokenType = TokenType.Bot,
-                    AutoReconnect = true
+                    AutoReconnect = true,
+                    Intents = DiscordIntents.All
                 };
                 
                 Client = new DiscordClient(clientConfig);
@@ -32,12 +33,14 @@ namespace self_bot
                 Client.Ready += OnClientReady;
                 
                 
-                var slashConfig = new SlashCommandsConfiguration
+                /*var slashConfig = new SlashCommandsConfiguration
                 {
                     
                 };
 
-                Slash = Client.UseSlashCommands(slashConfig);
+                Slash = Client.UseSlashCommands(slashConfig);*/
+
+                Slash = Client.UseSlashCommands();
 
                 SlashRegistry.RegisterCommands(Slash);
 
@@ -74,7 +77,7 @@ namespace self_bot
         
         //These properties cannot be modified through commands
         [JsonPropertyName("Token")]
-        public string Token { get; init; }
+        public required string Token { get; init; }
         [JsonPropertyName("OwnerID")]
         public ulong OwnerID { get; init; }
         [JsonPropertyName("BotID")]
