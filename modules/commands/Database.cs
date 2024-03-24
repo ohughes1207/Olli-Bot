@@ -1,9 +1,3 @@
-using System.Data.Common;
-using System.Diagnostics;
-using System.Net;
-using System.Net.Http.Headers;
-using System.Net.Mime;
-using System.Runtime.CompilerServices;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
@@ -127,6 +121,17 @@ namespace self_bot.modules.commands
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(x).AsEphemeral());
                     return;
                 }
+                if (Title!=null)
+                {
+                    queriedMessage.Title=Title;
+                }
+                if (MessageType!=null)
+                {
+                    queriedMessage.MessageType=MessageType;
+                }
+                db.Messages.Update(queriedMessage);
+                await db.SaveChangesAsync();
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Updated entry").AsEphemeral());
             }
         }
         [SlashCommand("DBList", "List entries in database")]
