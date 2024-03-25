@@ -40,7 +40,7 @@ namespace self_bot.modules.commands
             {
                 var guildMessages = db.Messages.AsQueryable().Where(x=> x.GuildId == ctx.Guild.Id);
                 
-                var queriedMessage = default(Message);
+                Message queriedMessage;
 
                 if (int.TryParse(query, out int intQuery))
                 {
