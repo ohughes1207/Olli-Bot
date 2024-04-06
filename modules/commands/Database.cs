@@ -32,7 +32,7 @@ namespace self_bot.modules.commands
             await DatabaseLogic.AddByID(ctx, messageEntry, Title, MessageType);
         }
         //Command to call an entry from the database based on ID
-        [SlashCommand("DBCall", "Call entry by ID from the database")]
+        [SlashCommand("DB", "Call entry by ID from the database")]
         public async Task CallMessage(InteractionContext ctx,
         [Option("Query", "Message ID or Title")] string query)
         {
