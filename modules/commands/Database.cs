@@ -215,7 +215,7 @@ namespace self_bot.modules.commands
                         attList.Add(attachment.Url);
                     }
                 }
-                //Embed is a image/video embedded from a link
+                //Embed is a image/video embedded from a link within the message content
                 if (message.Embeds.Count > 0)
                 {
                     foreach (var embed in message.Embeds)
@@ -258,7 +258,7 @@ namespace self_bot.modules.commands
             try
             {
                 using (var db = new MessageDB())
-                {
+                { 
                     var newQuote = new Message
                     {
                         GuildId = ctx.Guild.Id,
@@ -279,7 +279,6 @@ namespace self_bot.modules.commands
             {
                 Console.WriteLine(ex.Message);
             }
-
         }
     }
 }
