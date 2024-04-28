@@ -15,6 +15,7 @@ namespace self_bot.modules.commands
         [SlashCommand("Emoterank", "Emote rankings")]
         public async Task RankEmotes(InteractionContext ctx)
         {
+            await ctx.DeferAsync();
             try
             {
                 //Dictionary of emotes and an integer indicating number of uses 
@@ -76,7 +77,8 @@ namespace self_bot.modules.commands
 
                 Console.WriteLine(messageString.Length);
 
-                await ctx.Channel.SendMessageAsync(messageString);
+                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(messageString));
+                // await ctx.Channel.SendMessageAsync(messageString);
                 //await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(messageString));
                 // Send the formatted string as a single message to the Discord channel
                 //await ctx.Channel.SendMessageAsync(messageString);
