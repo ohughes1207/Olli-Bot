@@ -31,18 +31,18 @@ namespace self_bot.modules.commands
                 {
                     Console.WriteLine(ch.Value.Name);
 
-                    IReadOnlyList<DiscordMessage> messages = null;
+                    //IReadOnlyList<DiscordMessage> messages = null;
 
-                    var lastMessageId = ch.Value.LastMessageId;
+                    ulong? lastMessageId = null;
                     while (true)
                     {
                         /*if (lastMessageId==null)
                         {
                             break;
                         }*/
-                        messages = await ch.Value.GetMessagesBeforeAsync(lastMessageId.Value, 100);
-                        Console.WriteLine(lastMessageId);
-                        Console.WriteLine(lastMessageId.Value);
+                        IReadOnlyList<DiscordMessage> messages = lastMessageId == null ? await ch.Value.GetMessagesAsync(100) : await ch.Value.GetMessagesBeforeAsync(lastMessageId.Value, 100);
+                        //Console.WriteLine(lastMessageId);
+                        //Console.WriteLine(lastMessageId.Value);
                         if (messages.Count == 0)
                         {
                             break;
@@ -50,15 +50,7 @@ namespace self_bot.modules.commands
                         lastMessageId = messages.Last().Id;
                         foreach (var e in emoteList)
                         {
-                            Console.WriteLine(e.Value.GetType());
-                            foreach (var m in messages)
-                            {
-                                if (m.Reactions.Any(r => r.Emoji.Equals(e.Value)))
-                                {
-                                    Console.WriteLine("CONTAINS REACTION");
-                                }
-                            } 
-                            var filteredMessages = from m in messages where m.Reactions.Any(reaction => reaction.Emoji.Equals(e.Value))/*(m.Content.Contains(e.Value) ||m.Reactions.Any(reaction => reaction.Emoji.Equals(e)))*/ && m.Author.Id!=1118358168708329543 select m;
+                            var filteredMessages = from m in messages where (m.Content.Contains(e.Value) || m.Reactions.Any(reaction => reaction.Emoji.Equals(e.Value))) && m.Author.Id!=1118358168708329543 select m;
                             int count = filteredMessages.Count();
 
                             if (emoteCounts.ContainsKey(e.Value))
@@ -76,10 +68,10 @@ namespace self_bot.modules.commands
                 // int maxKeyLength = emoteCounts.Keys.Select(emoji => emoji.ToString().Length).Max();
 
                 // Create a formatted rank string with aligned data
-                var rankString = string.Join("\n", emoteCounts.OrderByDescending(kv => kv.Value).Select(kv => $"{kv.Key}|{kv.Value}"));
+                var rankString = string.Join("\n", emoteCounts.OrderByDescending(kv => kv.Value).Select(kv => $"{kv.Key}  -  {kv.Value}"));
 
                 // Prepare the header and the full message string with proper markdown for code block
-                var header = "Emote" + "|Usage Count";
+                var header = "Emote Usage Ranking:";
                 var messageString = $"{header}\n{rankString}";
 
                 Console.WriteLine(messageString.Length);
