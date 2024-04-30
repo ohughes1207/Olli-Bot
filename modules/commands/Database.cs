@@ -1,9 +1,3 @@
-using System.Data.Common;
-using System.Diagnostics;
-using System.Net;
-using System.Net.Http.Headers;
-using System.Net.Mime;
-using System.Runtime.CompilerServices;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
@@ -38,7 +32,7 @@ namespace self_bot.modules.commands
             await DatabaseLogic.AddByID(ctx, messageEntry, Title, MessageType);
         }
         //Command to call an entry from the database based on ID
-        [SlashCommand("DBCall", "Call entry by ID from the database")]
+        [SlashCommand("DB", "Call entry by ID from the database")]
         public async Task CallMessage(InteractionContext ctx,
         [Option("Query", "Message ID or Title")] string query)
         {
@@ -46,7 +40,7 @@ namespace self_bot.modules.commands
             {
                 var guildMessages = db.Messages.AsQueryable().Where(x=> x.GuildId == ctx.Guild.Id);
                 
-                var queriedMessage = default(Message);
+                Message queriedMessage;
 
                 if (int.TryParse(query, out int intQuery))
                 {
@@ -127,6 +121,17 @@ namespace self_bot.modules.commands
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(x).AsEphemeral());
                     return;
                 }
+                if (Title!=null)
+                {
+                    queriedMessage.Title=Title;
+                }
+                if (MessageType!=null)
+                {
+                    queriedMessage.MessageType=MessageType;
+                }
+                db.Messages.Update(queriedMessage);
+                await db.SaveChangesAsync();
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Updated entry").AsEphemeral());
             }
         }
         [SlashCommand("DBList", "List entries in database")]
@@ -210,7 +215,7 @@ namespace self_bot.modules.commands
                         attList.Add(attachment.Url);
                     }
                 }
-                //Embed is a image/video embedded from a link
+                //Embed is a image/video embedded from a link within the message content
                 if (message.Embeds.Count > 0)
                 {
                     foreach (var embed in message.Embeds)
@@ -253,7 +258,7 @@ namespace self_bot.modules.commands
             try
             {
                 using (var db = new MessageDB())
-                {
+                { 
                     var newQuote = new Message
                     {
                         GuildId = ctx.Guild.Id,
@@ -274,7 +279,6 @@ namespace self_bot.modules.commands
             {
                 Console.WriteLine(ex.Message);
             }
-
         }
     }
 }
