@@ -3,6 +3,8 @@ using DSharpPlus;
 using DSharpPlus.EventArgs;
 using DSharpPlus.SlashCommands;
 using System.Text.Json.Serialization;
+using DSharpPlus.SlashCommands.EventArgs;
+using DSharpPlus.SlashCommands.Attributes;
 
 namespace self_bot
 {
@@ -41,7 +43,7 @@ namespace self_bot
                 Slash = Client.UseSlashCommands(slashConfig);*/
 
                 Slash = Client.UseSlashCommands();
-
+                Slash.SlashCommandErrored += OnSlashError;
                 SlashRegistry.RegisterCommands(Slash);
 
                 await Client.ConnectAsync();
@@ -52,7 +54,47 @@ namespace self_bot
                 Console.WriteLine($"Error running bot..\n------- EXCEPTION -------\n {ex.Message}\n------- EXCEPTION -------");
             }
         }
+        private async Task OnSlashError(SlashCommandsExtension sender, SlashCommandErrorEventArgs e)
+        {
+            // Check if the error is due to a failed check (e.g., cooldown)
+            if (e.Exception is SlashExecutionChecksFailedException checksFailedException)
+            {
+                // Iterate over each failed check
+                foreach (var check in checksFailedException.FailedChecks)
+                {
+                    // If the failed check is a cooldown, send a specific message
+                    if (check is SlashCooldownAttribute cooldown)
+                    {
+                        await e.Context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DSharpPlus.Entities.DiscordInteractionResponseBuilder()
+                        .WithContent($"This command is on cooldown. Please wait {Math.Round(cooldown.GetRemainingCooldown(e.Context).TotalSeconds, 1)} seconds.")
+                        .AsEphemeral(true));
+                    }
+                    else
+                    {
+                        // Handle other types of failed checks
+                        await e.Context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DSharpPlus.Entities.DiscordInteractionResponseBuilder()
+                        .WithContent("You do not have permission to use this command.")
+                        .AsEphemeral(true));
+                    }
+                }
+            }
+            else
+            {
+                // If it's not a ChecksFailedException, log the exception for debugging
+                Console.WriteLine(e.Exception);
+            }
+        }
+        /*
+        private async Task OnSlashError(SlashCommandsExtension sender, SlashCommandErrorEventArgs e)
+        {
+            if (e.Exception is SlashExecutionChecksFailedException slashex)
+            {
 
+            }
+            //Console.WriteLine(sender);
+            Console.WriteLine(e.Exception);
+        }
+        */
         private Task OnClientReady(DiscordClient sender, ReadyEventArgs e)
         {
             return Task.CompletedTask;
