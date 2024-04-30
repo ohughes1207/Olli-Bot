@@ -7,17 +7,20 @@ using DSharpPlus;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.Entities;
 using self_bot.Migrations;
+using DSharpPlus.SlashCommands.Attributes;
+using DSharpPlus.SlashCommands.EventArgs;
 
 namespace self_bot.modules.commands
 {
     internal class Emotes : ApplicationCommandModule
     {
         [SlashCommand("Emoterank", "Emote rankings")]
+        [SlashCooldown(1, 600, SlashCooldownBucketType.Channel)]
         public async Task RankEmotes(InteractionContext ctx)
         {
-            await ctx.DeferAsync();
             try
             {
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Bot is working on counting emotes").AsEphemeral());
                 //Dictionary of emotes and an integer indicating number of uses 
                 var emoteCounts = new Dictionary<DiscordEmoji, int>();
 
@@ -77,11 +80,16 @@ namespace self_bot.modules.commands
 
                 Console.WriteLine(messageString.Length);
 
-                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(messageString));
-                // await ctx.Channel.SendMessageAsync(messageString);
+                // await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(messageString));
+                // await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(messageString));
+                await ctx.Channel.SendMessageAsync(messageString);
                 //await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(messageString));
                 // Send the formatted string as a single message to the Discord channel
                 //await ctx.Channel.SendMessageAsync(messageString);
+            }
+            catch (SlashExecutionChecksFailedException ex)
+            {
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(ex.Message).AsEphemeral());
             }
             catch (Exception e)
             {
