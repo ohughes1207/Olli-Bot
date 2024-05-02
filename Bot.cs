@@ -5,32 +5,38 @@ using DSharpPlus.SlashCommands;
 using System.Text.Json.Serialization;
 using DSharpPlus.SlashCommands.EventArgs;
 using DSharpPlus.SlashCommands.Attributes;
+using DSharpPlus.Entities;
 
 namespace self_bot
 {
     public class Bot
     {
-        public static Config Config {get; private set;}
-        public static DiscordClient Client { get; private set; }
+        public Config Config {get; private set;}
+        public DiscordClient Client { get; private set; }
         public SlashCommandsExtension Slash { get; private set; }
+
+        public Bot()
+        {
+            Config = InitializeConfig();
+
+
+            var clientConfig = new DiscordConfiguration
+            {
+                Token = Config.Token,
+                TokenType = TokenType.Bot,
+                AutoReconnect = true,
+                Intents = DiscordIntents.All
+                };
+
+            Client = new DiscordClient(clientConfig);
+            Slash = Client.UseSlashCommands();
+        }
         
         public async Task RunAsync()
         {
             try
             {
-                await InitializeConfig();
-
                 Console.Write(Config.OwnerID);
-
-                var clientConfig = new DiscordConfiguration
-                {
-                    Token = Config.Token,
-                    TokenType = TokenType.Bot,
-                    AutoReconnect = true,
-                    Intents = DiscordIntents.All
-                };
-                
-                Client = new DiscordClient(clientConfig);
 
                 Client.Ready += OnClientReady;
                 
@@ -42,11 +48,10 @@ namespace self_bot
 
                 Slash = Client.UseSlashCommands(slashConfig);*/
 
-                Slash = Client.UseSlashCommands();
                 Slash.SlashCommandErrored += OnSlashError;
                 SlashRegistry.RegisterCommands(Slash);
 
-                await Client.ConnectAsync();
+                await Client.ConnectAsync(new DiscordActivity("", ActivityType.Playing));
                 await Task.Delay(-1);
             }
             catch (Exception ex)
@@ -100,14 +105,14 @@ namespace self_bot
             return Task.CompletedTask;
         }
         
-        private static Task InitializeConfig()
+        private Config InitializeConfig()
         {
             var configFile = File.ReadAllText(@"config.json");
-            Config = JsonSerializer.Deserialize<Config>(configFile);
-            return Task.CompletedTask;
+            Config = JsonSerializer.Deserialize<Config>(configFile) ?? throw new InvalidOperationException("Config cannot be null");
+            return Config;
         }
 
-        public static async Task SaveConfig()
+        public async Task SaveConfig()
         {
             var config = JsonSerializer.Serialize(Config, new JsonSerializerOptions { WriteIndented = true});
             await File.WriteAllTextAsync($"config.json", config);
