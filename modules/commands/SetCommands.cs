@@ -1,4 +1,4 @@
-using DSharpPlus;
+/*using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 
@@ -19,4 +19,4 @@ namespace self_bot.modules.commands
             await ctx.CreateResponseAsync(embed.Build());
         }
     }
-}
+}*/

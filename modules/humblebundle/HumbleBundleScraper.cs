@@ -1,4 +1,4 @@
-using PuppeteerSharp;
+/*using PuppeteerSharp;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Xml;
@@ -94,4 +94,4 @@ namespace self_bot.modules.humblebundle
             }
         }
     }
-}
+}*/

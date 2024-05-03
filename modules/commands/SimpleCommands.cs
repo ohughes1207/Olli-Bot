@@ -9,10 +9,16 @@ namespace self_bot.modules.commands
         [SlashCommand("avatar", "Get the avatar of the specified user")]
         public static async Task Avatar(InteractionContext ctx, [Option("user", "Specified user")] DiscordUser? user = null)
         {
+            //if user is null user is ctx.User
+            user ??= ctx.User;
+            
+            //Replaced this with null-coalescing method
+            /*
             if (user==null)
             {
-                user=ctx.User;
-            }
+                user = ctx.User;
+            }*/
+
             var member = await ctx.Guild.GetMemberAsync(user.Id);
             var nickname = member.Nickname ?? member.DisplayName ?? user.Username;
             

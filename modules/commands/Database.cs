@@ -19,7 +19,7 @@ namespace self_bot.modules.commands
             if (!ulong.TryParse(messageEntry, out ulong result))
             {
                 //If manually entered quote has no origin then respond with unsuccessful message
-                if (User == null)
+                if (User is null)
                 {
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Entry unsuccessful, try again with a quote origin.").AsEphemeral());
                     return;
@@ -40,7 +40,7 @@ namespace self_bot.modules.commands
             {
                 var guildMessages = db.Messages.AsQueryable().Where(x=> x.GuildId == ctx.Guild.Id);
                 
-                Message queriedMessage;
+                Message? queriedMessage;
 
                 if (int.TryParse(query, out int intQuery))
                 {
@@ -48,18 +48,21 @@ namespace self_bot.modules.commands
                 }
                 else
                 {
-                    queriedMessage = guildMessages.Where(x => x.Title.ToLower().Contains(query.ToLower())).FirstOrDefault();
+                    queriedMessage = guildMessages.Where(x => x.Title != null && x.Title.ToLower().Contains(query.ToLower())).FirstOrDefault();
 
                 }
+
                 var responseBuilder = new DiscordInteractionResponseBuilder();
 
-                if (queriedMessage == null)
+
+                if (queriedMessage is null)
                 {
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, responseBuilder.WithContent("No message found").AsEphemeral());
                     return;
                 }
 
-                if (queriedMessage.DiscordMessageId == null && queriedMessage.MessageType=="Quote")
+
+                if (queriedMessage.DiscordMessageId is null && queriedMessage.MessageType=="Quote")
                 {
                     DiscordMember quoteOrigin = await ctx.Guild.GetMemberAsync(queriedMessage.MessageOriginId);
                     string responseContent = $"\"{queriedMessage.Content}\" - {quoteOrigin.DisplayName}";
@@ -68,7 +71,7 @@ namespace self_bot.modules.commands
                 else
                 {
 
-                    string responseContent = queriedMessage.Content;
+                    string responseContent = queriedMessage.Content ?? string.Empty;
                     
                     if (queriedMessage.AttachmentUrls.Count > 0)
                     {
@@ -78,6 +81,7 @@ namespace self_bot.modules.commands
                             responseContent+=attachment;
                         }
                     }
+
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, responseBuilder.WithContent(responseContent));
                 }
             }
@@ -89,7 +93,13 @@ namespace self_bot.modules.commands
         {
             using (var db = new MessageDB())
             {
-                var queriedMessage = db.Messages.AsQueryable().Where(x => x.Id == DbID && x.GuildId == ctx.Guild.Id).FirstOrDefault();
+                Message? queriedMessage = db.Messages.AsQueryable().Where(x => x.Id == DbID && x.GuildId == ctx.Guild.Id).FirstOrDefault();
+
+                if (queriedMessage is null)
+                {
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("No Entry found").AsEphemeral());
+                    return;
+                }
 
                 if (queriedMessage.AuthorId!=ctx.User.Id && !ctx.Member.Permissions.HasPermission(Permissions.Administrator))
                 {
@@ -157,7 +167,7 @@ namespace self_bot.modules.commands
 
 
                 var idString = string.Join("\n",messages.Select(m => m.Id));
-                var titleString = string.Join("\n",messages.Select(m => m.Title ?? "N/A"));
+                var titleString = string.Join("\n",messages.Select(m => m.Title?? "N/A"));
                 var typeString = string.Join("\n", messages.Select(m => m.MessageType));
                 var authorString = string.Join("\n", messages.Select(m => m.Author));
 
@@ -167,9 +177,13 @@ namespace self_bot.modules.commands
                 embed.AddField("Id", idString, true);
                 embed.AddField("Title", titleString, true);
                 embed.AddField("Type", typeString, true);
-                //embed.AddField("Author", authorString, true);
+                embed.WithColor(DiscordColor.Yellow);
+                embed.WithTitle("Olli Bot Database");
 
+                //embed.AddField("Author", authorString, true);
+                
                 await ctx.CreateResponseAsync(embed.Build());
+                //await ctx.CreateResponseAsync(embed.Build(), true);
             }
         }
     }
