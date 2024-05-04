@@ -18,6 +18,7 @@ namespace self_bot.modules.admin
                 //Temp safety procaution to avoid someone mass deleting messages on accident
                 if (x > 20)
                 {
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"No more than 20 messages pls (this is temp lol)").AsEphemeral());
                     return;
                 }
 
