@@ -6,6 +6,8 @@ using System.Text.Json.Serialization;
 using DSharpPlus.SlashCommands.EventArgs;
 using DSharpPlus.SlashCommands.Attributes;
 using DSharpPlus.Entities;
+using self_bot.modules;
+
 
 namespace self_bot
 {
@@ -38,7 +40,7 @@ namespace self_bot
             {
                 Console.Write(Config.OwnerID);
 
-                Client.Ready += OnClientReady;
+                Client.Ready += BotInitialization.InitializationTasks;
                 
                 
                 /*var slashConfig = new SlashCommandsConfiguration
