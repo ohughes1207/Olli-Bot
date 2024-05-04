@@ -5,7 +5,7 @@ using DSharpPlus.SlashCommands.Attributes;
 
 namespace self_bot.modules.commands
 {
-    public class Test_command : ApplicationCommandModule
+    public class TestCommands : ApplicationCommandModule
     {
         [SlashCommand("test1", "A slash command test")]
         [SlashCooldown(1, 10, SlashCooldownBucketType.User)]
