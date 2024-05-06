@@ -11,7 +11,7 @@ namespace OlliBot
             slash.RegisterCommands<TestCommands>();
             slash.RegisterCommands<TestCommands2>();
             slash.RegisterCommands<SimpleCommands>();
-            //slash.RegisterCommands<MeowCommand>();
+            //slash.RegisterCommands<TestToggleCommand>();
             slash.RegisterCommands<AdminCommands>();
             slash.RegisterCommands<DatabaseCommands>();
             slash.RegisterCommands<Emotes>();

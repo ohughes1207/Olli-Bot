@@ -6,7 +6,7 @@ using DSharpPlus.SlashCommands;
 
 namespace self_bot.modules.commands
 {
-    internal class TestCommand : ApplicationCommandModule
+    internal class TestToggleCommand : ApplicationCommandModule
     {
         private static DiscordClient _clientInstance => Bot.Client;
         private DiscordUser _user;
