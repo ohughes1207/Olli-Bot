@@ -13,9 +13,9 @@ namespace OlliBot
 {
     public class Bot
     {
-        public Config Config {get; private set;}
-        public DiscordClient Client { get; private set; }
-        public SlashCommandsExtension Slash { get; private set; }
+        internal Config Config {get; private set;}
+        internal DiscordClient Client { get; private set; }
+        internal SlashCommandsExtension Slash { get; private set; }
 
         public Bot()
         {
