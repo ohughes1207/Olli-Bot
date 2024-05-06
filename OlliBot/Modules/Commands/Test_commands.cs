@@ -22,7 +22,7 @@ namespace OlliBot.Modules
     }
 
     //Created a new class just to see how that interacts with registering new commannds
-    public class Test_command2 : ApplicationCommandModule
+    public class TestCommands2 : ApplicationCommandModule
     {
 
         [SlashCommand("test2", "Another slash command test")]
