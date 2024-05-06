@@ -1,0 +1,9 @@
+config.json
+bin
+obj
+
+
+modules/personality
+modules/commands/MeowCommand.cs
+ServersData.db*
+ServersData*
