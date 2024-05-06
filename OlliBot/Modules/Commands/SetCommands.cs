@@ -1,6 +1,9 @@
-/*using DSharpPlus;
-using DSharpPlus.Entities;
+
+// Temporarily commented out as this command broke when refactoring Bot class to not have static Client, Config and Slash properties
+
+/*using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
+using OlliBot;
 
 namespace self_bot.modules.commands
 {
