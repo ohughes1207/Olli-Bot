@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace self_bot.Migrations
+namespace OlliBot.Migrations
 {
     /// <inheritdoc />
     public partial class Initial : Migration

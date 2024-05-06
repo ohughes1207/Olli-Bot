@@ -1,8 +1,7 @@
 using DSharpPlus.SlashCommands;
-using self_bot.modules.admin;
-using self_bot.modules.commands;
+using OlliBot.Modules;
 
-namespace self_bot
+namespace OlliBot
 {
     internal static class SlashRegistry
     {

@@ -2,7 +2,7 @@ using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 
-namespace self_bot.modules
+namespace OlliBot.Modules
 {
     public class EventHandler
     {

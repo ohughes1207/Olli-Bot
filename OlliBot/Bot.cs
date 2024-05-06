@@ -6,10 +6,10 @@ using System.Text.Json.Serialization;
 using DSharpPlus.SlashCommands.EventArgs;
 using DSharpPlus.SlashCommands.Attributes;
 using DSharpPlus.Entities;
-using self_bot.modules;
+using OlliBot.Modules;
 
 
-namespace self_bot
+namespace OlliBot
 {
     public class Bot
     {
@@ -53,7 +53,7 @@ namespace self_bot
                 Slash.SlashCommandErrored += OnSlashError;
                 SlashRegistry.RegisterCommands(Slash);
 
-                await Client.ConnectAsync(new DiscordActivity("", ActivityType.Playing));
+                await Client.ConnectAsync(new DiscordActivity("you", ActivityType.ListeningTo));
                 await Task.Delay(-1);
             }
             catch (Exception ex)
@@ -136,7 +136,5 @@ namespace self_bot
         //Properties from here onwards can be modified through commands
         [JsonPropertyName("BotChannel")]
         public ulong? BotChannel { get; set; }
-        [JsonPropertyName("HBChannel")]
-        public ulong? HBChannel { get; set; }
     }
 }

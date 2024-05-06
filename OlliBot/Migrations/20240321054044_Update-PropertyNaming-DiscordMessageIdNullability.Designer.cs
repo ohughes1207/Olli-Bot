@@ -4,11 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using self_bot.modules.data;
+using OlliBot.Data;
+
 
 #nullable disable
 
-namespace self_bot.Migrations
+namespace OlliBot.Migrations
 {
     [DbContext(typeof(MessageDB))]
     [Migration("20240321054044_Update-PropertyNaming-DiscordMessageIdNullability")]

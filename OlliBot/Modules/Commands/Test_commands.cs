@@ -3,7 +3,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
 
-namespace self_bot.modules.commands
+namespace OlliBot.Modules
 {
     public class TestCommands : ApplicationCommandModule
     {
@@ -20,6 +20,8 @@ namespace self_bot.modules.commands
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("womp womp").AsEphemeral());
         }
     }
+
+    //Created a new class just to see how that interacts with registering new commannds
     public class Test_command2 : ApplicationCommandModule
     {
 

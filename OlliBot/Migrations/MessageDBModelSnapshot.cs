@@ -3,11 +3,11 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using self_bot.modules.data;
+using OlliBot.Data;
 
 #nullable disable
 
-namespace self_bot.Migrations
+namespace OlliBot.Migrations
 {
     [DbContext(typeof(MessageDB))]
     partial class MessageDBModelSnapshot : ModelSnapshot

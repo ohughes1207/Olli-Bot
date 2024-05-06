@@ -1,18 +1,17 @@
-using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 
-namespace self_bot.modules.commands
+namespace OlliBot.Modules
 {
     public class SimpleCommands : ApplicationCommandModule
     {        
         [SlashCommand("avatar", "Get the avatar of the specified user")]
         public static async Task Avatar(InteractionContext ctx, [Option("user", "Specified user")] DiscordUser? user = null)
         {
-            //if user is null user is ctx.User
+            //if user is null user is ctx.User i.e the using who executed the command
             user ??= ctx.User;
             
-            //Replaced this with null-coalescing method
+            //Replaced this with null-coalescing method, as seen above
             /*
             if (user==null)
             {

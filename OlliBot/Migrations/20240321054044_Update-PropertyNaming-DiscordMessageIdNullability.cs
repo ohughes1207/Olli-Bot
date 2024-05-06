@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace self_bot.Migrations
+namespace OlliBot.Migrations
 {
     /// <inheritdoc />
     public partial class UpdatePropertyNamingDiscordMessageIdNullability : Migration

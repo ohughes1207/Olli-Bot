@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 
-namespace self_bot.modules.data
+namespace OlliBot.Data
 {
     public class MessageDB : DbContext
     {

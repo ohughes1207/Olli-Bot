@@ -1,10 +1,9 @@
 using DSharpPlus;
 using DSharpPlus.Entities;
-using DSharpPlus.Exceptions;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
 
-namespace self_bot.modules.admin
+namespace OlliBot.Modules
 {
     internal class AdminCommands : ApplicationCommandModule
     {

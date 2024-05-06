@@ -1,16 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using DSharpPlus.EventArgs;
 using DSharpPlus;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.Entities;
-using self_bot.Migrations;
 using DSharpPlus.SlashCommands.Attributes;
-using DSharpPlus.SlashCommands.EventArgs;
 
-namespace self_bot.modules.commands
+namespace OlliBot.Modules
 {
     internal class Emotes : ApplicationCommandModule
     {

@@ -1,9 +1,10 @@
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
-using self_bot.modules.data;
+using OlliBot.Data;
 
-namespace self_bot.modules.commands
+
+namespace OlliBot.Modules
 {
     internal class DatabaseCommands : ApplicationCommandModule
     {

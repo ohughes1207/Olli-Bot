@@ -1,7 +1,7 @@
 using DSharpPlus;
 using DSharpPlus.EventArgs;
 
-namespace self_bot.modules
+namespace OlliBot.Modules
 {
     public class BotInitialization
     {

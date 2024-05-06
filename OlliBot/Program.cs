@@ -1,6 +1,4 @@
-﻿
-
-namespace self_bot
+﻿namespace OlliBot
 {
     internal class Program
     {
