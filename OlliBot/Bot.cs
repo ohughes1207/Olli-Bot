@@ -63,22 +63,21 @@ namespace OlliBot
         }
         private async Task OnSlashError(SlashCommandsExtension sender, SlashCommandErrorEventArgs e)
         {
-            // Check if the error is due to a failed check (e.g., cooldown)
+            // Check if the error is due to a failed check i.e on cooldown
             if (e.Exception is SlashExecutionChecksFailedException checksFailedException)
             {
-                // Iterate over each failed check
                 foreach (var check in checksFailedException.FailedChecks)
                 {
-                    // If the failed check is a cooldown, send a specific message
+                    // Slash command is on cooldown
                     if (check is SlashCooldownAttribute cooldown)
                     {
                         await e.Context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DSharpPlus.Entities.DiscordInteractionResponseBuilder()
                         .WithContent($"This command is on cooldown. Please wait {Math.Round(cooldown.GetRemainingCooldown(e.Context).TotalSeconds, 1)} seconds.")
                         .AsEphemeral(true));
                     }
+                    // Command failed because some other check failed (issue with permissions maybe?)
                     else
                     {
-                        // Handle other types of failed checks
                         await e.Context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DSharpPlus.Entities.DiscordInteractionResponseBuilder()
                         .WithContent("You do not have permission to use this command.")
                         .AsEphemeral(true));
@@ -87,7 +86,7 @@ namespace OlliBot
             }
             else
             {
-                // If it's not a ChecksFailedException, log the exception for debugging
+                // Case for typical exceptions
                 Console.WriteLine(e.Exception);
             }
         }
