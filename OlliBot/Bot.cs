@@ -100,12 +100,11 @@ namespace OlliBot
             //Console.WriteLine(sender);
             Console.WriteLine(e.Exception);
         }
-        */
         private Task OnClientReady(DiscordClient sender, ReadyEventArgs e)
         {
             return Task.CompletedTask;
         }
-        
+        */
         private Config InitializeConfig()
         {
             var configFile = File.ReadAllText(@"config.json");
