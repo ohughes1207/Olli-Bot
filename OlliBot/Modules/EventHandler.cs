@@ -15,11 +15,9 @@ namespace OlliBot.Modules
                 await Client.SendMessageAsync(args.Channel, new DiscordMessageBuilder().WithContent("or sorry that happened"));
                 return;
             }
-            if (args.Author.Id == 119904333750861824)
-            {
-                await Client.SendMessageAsync(args.Channel, new DiscordMessageBuilder().WithReply(args.Message.Id).WithContent("lkjasdlkjan"));
-                return;
-            }
+
+            
+            // Add more logic to this event
         }
     }
 }
