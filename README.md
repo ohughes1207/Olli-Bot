@@ -15,3 +15,4 @@ Designed for easy integration of slash commands.
 - [x] Custom emote leaderboard (To show which emotes are most used in a server)
 - [ ] Unit tests
 - [ ] Additional event subscriptions (check messages on create + update, etc)
+- [ ] Literally any other ideas I can come up with
