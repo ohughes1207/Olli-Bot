@@ -1,6 +1,6 @@
 // Idk if I will continue working on this
 
-/*using DSharpPlus.Entities;
+using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using self_bot.modules.humblebundle;
 
@@ -21,4 +21,3 @@ namespace self_bot.modules.commands
         }
     }
 }
-*/
