@@ -2,6 +2,7 @@ using DSharpPlus;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands.Attributes;
+using System.Text;
 
 namespace OlliBot.Modules
 {
@@ -61,17 +62,26 @@ namespace OlliBot.Modules
                     }
                 }
 
-                // Create a formatted rank string with aligned data
+                StringBuilder sb = new StringBuilder();
+
+                sb.AppendLine("Emote Usage Ranking:");
+
+                foreach (var kv in emoteCounts.OrderByDescending(kv => kv.Value))
+                {
+                    sb.AppendLine($"{kv.Key}  -  {kv.Value}");
+                }
+
+                /*
                 var rankString = string.Join("\n", emoteCounts.OrderByDescending(kv => kv.Value).Select(kv => $"{kv.Key}  -  {kv.Value}"));
 
                 var header = "Emote Usage Ranking:";
                 var messageString = $"{header}\n{rankString}";
+                */
 
-
-                Console.WriteLine(messageString.Length);
+                Console.WriteLine(sb.Length);
 
                 // Send the formatted string as a single message to the Discord channel
-                await ctx.Channel.SendMessageAsync(messageString);
+                await ctx.Channel.SendMessageAsync(sb.ToString());
             }
             catch (Exception e)
             {
