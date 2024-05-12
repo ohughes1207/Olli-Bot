@@ -30,6 +30,7 @@ namespace OlliBot.Modules
                     Console.WriteLine(ch.Name);
 
                     ulong? lastMessageId = null;
+
                     while (true)
                     {
                         IReadOnlyList<DiscordMessage> messages = lastMessageId == null ? await ch.GetMessagesAsync(100) : await ch.GetMessagesBeforeAsync(lastMessageId.Value, 100);
@@ -38,10 +39,14 @@ namespace OlliBot.Modules
                         {
                             break;
                         }
-                        lastMessageId = messages.Last().Id;
+
+                        //lastMessageId = messages.Last().Id;
+
+                        lastMessageId = messages[messages.Count - 1].Id;
+
                         foreach (var e in emoteList.Select(e => e.Value))
                         {
-                            var filteredMessages = from m in messages where (m.Content.Contains(e) || m.Reactions.Any(reaction => reaction.Emoji.Equals(e))) && m.Author.Id!=1118358168708329543 select m;
+                            var filteredMessages = messages.Where(m => (m.Content.Contains(e) || m.Reactions.Any(reaction => reaction.Emoji.Equals(e))) && m.Author.Id!=1118358168708329543);
                             int count = filteredMessages.Count();
 
                             if (emoteCounts.ContainsKey(e))
