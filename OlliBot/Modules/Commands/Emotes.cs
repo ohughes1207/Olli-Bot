@@ -47,8 +47,8 @@ namespace OlliBot.Modules
 
                         foreach (var e in emoteList.Select(e => e.Value))
                         {
-                            var filteredMessages = messages.Where(m => (m.Content.Contains(e) || m.Reactions.Any(reaction => reaction.Emoji.Equals(e))) && m.Author.Id!=1118358168708329543);
-                            int count = filteredMessages.Count();
+                            var count = messages.Count(m => (m.Content.Contains(e) || m.Reactions.Any(reaction => reaction.Emoji.Equals(e))) && m.Author.Id!=1118358168708329543);
+                            //int count = filteredMessages.Count();
 
                             if (emoteCounts.ContainsKey(e))
                             {
