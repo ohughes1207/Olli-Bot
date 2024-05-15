@@ -1,4 +1,4 @@
-/*
+
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
@@ -52,4 +52,3 @@ namespace self_bot.modules.commands
         }
     }
 }
-*/

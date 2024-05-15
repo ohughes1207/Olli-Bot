@@ -7,6 +7,7 @@ using DSharpPlus.SlashCommands.EventArgs;
 using DSharpPlus.SlashCommands.Attributes;
 using DSharpPlus.Entities;
 using OlliBot.Modules;
+using OlliBot.Data;
 
 
 namespace OlliBot
@@ -20,7 +21,6 @@ namespace OlliBot
         public Bot()
         {
             Config = InitializeConfig();
-
 
             var clientConfig = new DiscordConfiguration
             {
@@ -117,22 +117,5 @@ namespace OlliBot
             var config = JsonSerializer.Serialize(Config, new JsonSerializerOptions { WriteIndented = true});
             await File.WriteAllTextAsync($"config.json", config);
         }
-    }
-    public class Config
-    {
-        //Rename JsonPropertyName to JsonProperty if Newtonsoft.json is prefered
-        
-        //These properties cannot be modified through commands
-        [JsonPropertyName("Token")]
-        public required string Token { get; init; }
-        [JsonPropertyName("OwnerID")]
-        public ulong OwnerID { get; init; }
-        [JsonPropertyName("BotID")]
-        public ulong BotID { get; init; }
-
-
-        //Properties from here onwards can be modified through commands
-        [JsonPropertyName("BotChannel")]
-        public ulong? BotChannel { get; set; }
     }
 }
