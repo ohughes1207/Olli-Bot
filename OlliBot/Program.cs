@@ -1,11 +1,7 @@
-﻿namespace OlliBot
-{
-    internal class Program
-    {
-        private static void Main(string[] args)
-        {
-            var bot = new Bot();
-            bot.RunAsync().GetAwaiter().GetResult();
-        }
-    }
-}
+using OlliBot;
+
+var builder = Host.CreateApplicationBuilder(args);
+builder.Services.AddHostedService<Worker>();
+
+var host = builder.Build();
+host.Run();
