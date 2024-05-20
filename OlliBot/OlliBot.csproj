@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-OlliBot-7bc82b97-42df-44fe-a24d-97e5c5ccd33d</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Modules\Commands\HumbleBundleCommands.cs" />
+    <Compile Remove="Modules\Commands\SetCommands.cs" />
+    <Compile Remove="Modules\Commands\TestToggleCommand.cs" />
+    <Compile Remove="Modules\HumbleBundle.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Modules\Commands\HumbleBundleCommands.cs" />
+    <None Include="Modules\Commands\SetCommands.cs" />
+    <None Include="Modules\Commands\TestToggleCommand.cs" />
+    <None Include="Modules\HumbleBundle.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DSharpPlus" Version="4.4.6" />
+    <PackageReference Include="DSharpPlus.SlashCommands" Version="4.4.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="PuppeteerSharp" Version="17.0.0" />
+    <PackageReference Include="System.Net.Security" Version="4.3.2" />
+  </ItemGroup>
+</Project>
