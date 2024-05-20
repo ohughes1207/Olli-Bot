@@ -1,5 +1,6 @@
 using DSharpPlus;
 using DSharpPlus.SlashCommands;
+using OlliBot.Data;
 
 namespace OlliBot
 {
@@ -10,6 +11,8 @@ namespace OlliBot
             var builder = Host.CreateApplicationBuilder(args);
 
             builder.Services.AddHostedService<Bot>();
+
+            builder.Configuration.AddJsonFile("config.json", optional: false, reloadOnChange: true);
 
             builder.Services.AddSingleton<DiscordClient>((serviceProvider) =>
             {
@@ -23,6 +26,22 @@ namespace OlliBot
                     Intents = DiscordIntents.All
                 });
 
+                /*
+                var slash = discordClient.UseSlashCommands(new SlashCommandsConfiguration
+                {
+                    Services = serviceProvider
+                });
+
+                SlashRegistry.RegisterCommands(slash);
+                */
+
+                return discordClient;
+            });
+
+            builder.Services.AddSingleton<SlashCommandsExtension>((serviceProvider) =>
+            {
+                var discordClient = serviceProvider.GetRequiredService<DiscordClient>();
+
                 var slash = discordClient.UseSlashCommands(new SlashCommandsConfiguration
                 {
                     Services = serviceProvider
@@ -30,8 +49,10 @@ namespace OlliBot
 
                 SlashRegistry.RegisterCommands(slash);
 
-                return discordClient;
+                return slash;
             });
+
+            Console.WriteLine(builder.Configuration["BotID"]);
 
             var host = builder.Build();
             //Console.Write(builder.Services.GetType());
