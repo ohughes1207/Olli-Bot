@@ -8,8 +8,6 @@ namespace OlliBot.Data
         //Rename JsonPropertyName to JsonProperty if Newtonsoft.json is prefered
         
         //These properties cannot be modified through commands
-        [JsonPropertyName("Token")]
-        public required string Token { get; init; }
         [JsonPropertyName("OwnerID")]
         public ulong OwnerID { get; init; }
         [JsonPropertyName("BotID")]
