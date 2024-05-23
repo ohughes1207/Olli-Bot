@@ -1,6 +1,6 @@
 using DSharpPlus;
 using DSharpPlus.SlashCommands;
-using OlliBot.Data;
+using Serilog;
 
 namespace OlliBot
 {
@@ -9,6 +9,15 @@ namespace OlliBot
         private static void Main(string[] args)
         {
             var builder = Host.CreateApplicationBuilder(args);
+
+
+            Serilog.ILogger logger = new LoggerConfiguration()
+                .WriteTo.Console()
+                .CreateLogger();
+
+            builder.Logging.ClearProviders();
+            builder.Logging.AddSerilog(logger);
+            builder.Services.AddSingleton(logger);
 
             builder.Services.AddHostedService<Bot>();
 
@@ -23,7 +32,8 @@ namespace OlliBot
                     Token = config["DiscordBotToken"],
                     TokenType = TokenType.Bot,
                     AutoReconnect = true,
-                    Intents = DiscordIntents.All
+                    Intents = DiscordIntents.All,
+                    LoggerFactory= new LoggerFactory().AddSerilog(logger)
                 });
 
                 /*
@@ -52,11 +62,22 @@ namespace OlliBot
                 return slash;
             });
 
-            Console.WriteLine(builder.Configuration["BotID"]);
-
             var host = builder.Build();
-            //Console.Write(builder.Services.GetType());
+
             host.Run();
+
+
+            /*
+            try
+            {
+                host.Run();
+            }
+            finally
+            {
+                logger.Information("Flushing logs...");
+                Log.CloseAndFlush();
+            }*/
+
         }
     }
 }
