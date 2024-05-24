@@ -10,27 +10,32 @@ namespace OlliBot;
 
 public class Bot : BackgroundService
 {
+
     private readonly Serilog.ILogger _logger;
-
     private readonly DiscordClient _discordClient;
-
     private readonly SlashCommandsExtension _slash;
+    private readonly IConfiguration _configuration;
+    private readonly BotInitialization _botInitialization;
 
-    public Bot(Serilog.ILogger logger, DiscordClient discordClient, SlashCommandsExtension slash)
+    public Bot(Serilog.ILogger logger, DiscordClient discordClient, SlashCommandsExtension slash, IConfiguration configuration, BotInitialization botInitialization)
     {
         //_logger = Log.ForContext<Bot>();
         _logger = logger;
         _discordClient = discordClient;
         _slash = slash;
+        _configuration = configuration;
+        _botInitialization = botInitialization;
     }
     
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
         _logger.Information("OlliBot starting...");
-        _discordClient.Ready += BotInitialization.InitializationTasks;
+        _discordClient.Ready += _botInitialization.InitializationTasks;
         _slash.SlashCommandErrored += ExceptionHandler.OnSlashError;
 
-        await _discordClient.ConnectAsync(new DiscordActivity("you :3", ActivityType.Watching));
+        _logger.Information(_configuration["OwnerID"] ?? "Owner ID not configured");
+
+        await _discordClient.ConnectAsync(new DiscordActivity("you :3", ActivityType.Playing));
     }
 
 
@@ -38,7 +43,7 @@ public class Bot : BackgroundService
     {
         try
         {
-            _discordClient.Ready -= BotInitialization.InitializationTasks;
+            _discordClient.Ready -= _botInitialization.InitializationTasks;
             _slash.SlashCommandErrored -= ExceptionHandler.OnSlashError;
 
 
