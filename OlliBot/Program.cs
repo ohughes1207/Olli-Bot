@@ -1,5 +1,7 @@
 using DSharpPlus;
 using DSharpPlus.SlashCommands;
+using Microsoft.Extensions.DependencyInjection;
+using OlliBot.Modules;
 using Serilog;
 
 namespace OlliBot
@@ -12,6 +14,7 @@ namespace OlliBot
 
 
             Serilog.ILogger logger = new LoggerConfiguration()
+                .MinimumLevel.Information()
                 .WriteTo.Console()
                 .CreateLogger();
 
@@ -62,10 +65,11 @@ namespace OlliBot
                 return slash;
             });
 
+            builder.Services.AddTransient<BotInitialization>();
+
+
             var host = builder.Build();
-
             host.Run();
-
 
             /*
             try
