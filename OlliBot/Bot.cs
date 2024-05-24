@@ -2,35 +2,40 @@ using DSharpPlus;
 using DSharpPlus.AsyncEvents;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
-using DSharpPlus.SlashCommands.Attributes;
-using DSharpPlus.SlashCommands.EventArgs;
 using OlliBot.Modules;
 using OlliBot.Utilities;
+using Serilog;
 
 namespace OlliBot;
 
 public class Bot : BackgroundService
 {
-    private readonly ILogger<Bot> _logger;
 
+    private readonly Serilog.ILogger _logger;
     private readonly DiscordClient _discordClient;
-
     private readonly SlashCommandsExtension _slash;
+    private readonly IConfiguration _configuration;
+    private readonly BotInitialization _botInitialization;
 
-    public Bot(ILogger<Bot> logger, DiscordClient discordClient, SlashCommandsExtension slash)
+    public Bot(Serilog.ILogger logger, DiscordClient discordClient, SlashCommandsExtension slash, IConfiguration configuration, BotInitialization botInitialization)
     {
+        //_logger = Log.ForContext<Bot>();
         _logger = logger;
         _discordClient = discordClient;
         _slash = slash;
+        _configuration = configuration;
+        _botInitialization = botInitialization;
     }
     
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("OlliBot starting...");
-        _discordClient.Ready += BotInitialization.InitializationTasks;
+        _logger.Information("OlliBot starting...");
+        _discordClient.Ready += _botInitialization.InitializationTasks;
         _slash.SlashCommandErrored += ExceptionHandler.OnSlashError;
 
-        await _discordClient.ConnectAsync(new DiscordActivity("you :3", ActivityType.Watching));
+        _logger.Information(_configuration["OwnerID"] ?? "Owner ID not configured");
+
+        await _discordClient.ConnectAsync(new DiscordActivity("you :3", ActivityType.Playing));
     }
 
 
@@ -38,26 +43,30 @@ public class Bot : BackgroundService
     {
         try
         {
-            _discordClient.Ready -= BotInitialization.InitializationTasks;
+            _discordClient.Ready -= _botInitialization.InitializationTasks;
             _slash.SlashCommandErrored -= ExceptionHandler.OnSlashError;
 
 
-            _logger.LogInformation("OlliBot disconnecting...");
+            _logger.Information("OlliBot disconnecting...");
             await _discordClient.DisconnectAsync();
-            _logger.LogInformation("Ollibot disconnected...");
+            _logger.Information("Ollibot disconnected...");
 
 
-            _logger.LogInformation("Disposing client...");
+            _logger.Information("Disposing client...");
             _slash.Dispose();
             _discordClient.Dispose();
-            _logger.LogInformation("Bot client disposed...");
+            _logger.Information("Bot client disposed...");
+
+            _logger.Information("Flushing logs...");
+            Log.CloseAndFlush();
 
 
-            _logger.LogInformation("OlliBot shutting down...");
+            _logger.Information("OlliBot shutting down...");
+
         }
         catch (Exception ex) 
         {
-            _logger.LogError(ex.Message);
+            _logger.Error(ex.Message);
         }
     }
 
