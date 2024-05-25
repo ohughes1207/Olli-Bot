@@ -26,7 +26,7 @@ public class Bot : BackgroundService
         _configuration = configuration;
         _botInitialization = botInitialization;
     }
-    
+
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
         _logger.Information("OlliBot starting...");
@@ -34,10 +34,20 @@ public class Bot : BackgroundService
         _slash.SlashCommandErrored += ExceptionHandler.OnSlashError;
 
         _logger.Information(_configuration["OwnerID"] ?? "Owner ID not configured");
+        try
+        {
+            await _discordClient.ConnectAsync(new DiscordActivity("with you :3", ActivityType.Playing));
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"Client failed to connect: {ex.Message}");
 
-        await _discordClient.ConnectAsync(new DiscordActivity("you :3", ActivityType.Playing));
+            _discordClient.Ready -= _botInitialization.InitializationTasks;
+            _slash.SlashCommandErrored -= ExceptionHandler.OnSlashError;
+
+            throw;
+        }
     }
-
 
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
@@ -66,7 +76,8 @@ public class Bot : BackgroundService
         }
         catch (Exception ex) 
         {
-            _logger.Error(ex.Message);
+            _logger.Error($"Error occured while shutting down: {ex.Message}");
+            throw;
         }
     }
 
