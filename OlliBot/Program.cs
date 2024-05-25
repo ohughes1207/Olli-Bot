@@ -3,6 +3,7 @@ using DSharpPlus.SlashCommands;
 using Microsoft.Extensions.DependencyInjection;
 using OlliBot.Modules;
 using Serilog;
+using System;
 
 namespace OlliBot
 {
@@ -23,32 +24,36 @@ namespace OlliBot
             builder.Services.AddSingleton(logger);
 
             builder.Services.AddHostedService<Bot>();
-
-            builder.Configuration.AddJsonFile("config.json", optional: false, reloadOnChange: true);
-
+            try
+            {
+                builder.Configuration.AddJsonFile("config.json", optional: false, reloadOnChange: true);
+            }
+            catch (Exception ex)
+            {
+                logger.Error($"Failed to load config.json: {ex.Message}");
+                return;
+            }
             builder.Services.AddSingleton<DiscordClient>((serviceProvider) =>
             {
                 var config = builder.Configuration;
-
-                var discordClient = new DiscordClient(new DiscordConfiguration
+                try
                 {
-                    Token = config["DiscordBotToken"],
-                    TokenType = TokenType.Bot,
-                    AutoReconnect = true,
-                    Intents = DiscordIntents.All,
-                    LoggerFactory= new LoggerFactory().AddSerilog(logger)
-                });
+                    var discordClient = new DiscordClient(new DiscordConfiguration
+                    {
+                        Token = config["DiscordBotToken"],
+                        TokenType = TokenType.Bot,
+                        AutoReconnect = true,
+                        Intents = DiscordIntents.All,
+                        LoggerFactory = new LoggerFactory().AddSerilog(logger)
+                    });
 
-                /*
-                var slash = discordClient.UseSlashCommands(new SlashCommandsConfiguration
+                    return discordClient;
+                }
+                catch (Exception ex)
                 {
-                    Services = serviceProvider
-                });
-
-                SlashRegistry.RegisterCommands(slash);
-                */
-
-                return discordClient;
+                    logger.Error($"Failed to initialize Discord client: {ex.Message}");
+                    throw;
+                }
             });
 
             builder.Services.AddSingleton<SlashCommandsExtension>((serviceProvider) =>
@@ -67,21 +72,15 @@ namespace OlliBot
 
             builder.Services.AddTransient<BotInitialization>();
 
-
-            var host = builder.Build();
-            host.Run();
-
-            /*
             try
             {
+                var host = builder.Build();
                 host.Run();
             }
-            finally
+            catch (Exception ex) 
             {
-                logger.Information("Flushing logs...");
-                Log.CloseAndFlush();
-            }*/
-
+                logger.Error($"Host failed to run: {ex.Message}");
+            }
         }
     }
 }
