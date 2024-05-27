@@ -14,7 +14,6 @@ namespace OlliBot.Modules
         {
             try
             {
-                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Bot is working on counting emotes").AsEphemeral());
                 
                 //Dictionary of emotes and an integer indicating number of uses 
                 var emoteCounts = new Dictionary<DiscordEmoji, int>();
@@ -22,9 +21,16 @@ namespace OlliBot.Modules
                 //only emotes that are available
                 var emoteList = ctx.Guild.Emojis.Where(e => e.Value.IsAvailable);
 
+                if (emoteList.Count()==0)
+                {
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("No emotes found").AsEphemeral());
+                    return;
+                }
+
                 //only text channels
                 var channelList = ctx.Guild.Channels.Where(c => !c.Value.IsCategory && c.Value.Type==0);
 
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Bot is working on counting emotes").AsEphemeral());
 
                 foreach (var ch in channelList.Select(c => c.Value))
                 {
