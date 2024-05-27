@@ -74,7 +74,6 @@ namespace OlliBot
 
 
             builder.Services.AddTransient<BotInitialization>();
-            builder.Services.AddSingleton<ExceptionHandler>();
 
             try
             {

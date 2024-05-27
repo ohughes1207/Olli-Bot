@@ -14,9 +14,8 @@ public class Bot : BackgroundService
     private readonly SlashCommandsExtension _slash;
     private readonly IConfiguration _configuration;
     private readonly BotInitialization _botInitialization;
-    private readonly ExceptionHandler _exceptionHandler;
 
-    public Bot(ILogger<Bot> logger, DiscordClient discordClient, SlashCommandsExtension slash, IConfiguration configuration, BotInitialization botInitialization, ExceptionHandler exceptionHandler)
+    public Bot(ILogger<Bot> logger, DiscordClient discordClient, SlashCommandsExtension slash, IConfiguration configuration, BotInitialization botInitialization)
     {
         //_logger = Log.ForContext<Bot>();
         _logger = logger;
@@ -24,14 +23,16 @@ public class Bot : BackgroundService
         _slash = slash;
         _configuration = configuration;
         _botInitialization = botInitialization;
-        _exceptionHandler = exceptionHandler;
     }
 
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("OlliBot starting...");
         _discordClient.Ready += _botInitialization.InitializationTasks;
-        _slash.SlashCommandErrored += _exceptionHandler.OnSlashError;
+
+        _slash.SlashCommandErrored += ExceptionHandler.OnSlashError;
+        _slash.SlashCommandInvoked += OlliBot.Modules.EventHandler.OnSlashInvoke;
+        _slash.SlashCommandExecuted += OlliBot.Modules.EventHandler.OnSlashExecute;
 
         _logger.LogInformation(_configuration["OwnerID"] ?? "Owner ID not configured");
         try
@@ -43,7 +44,7 @@ public class Bot : BackgroundService
             _logger.LogCritical($"Client failed to connect: {ex.Message}");
 
             _discordClient.Ready -= _botInitialization.InitializationTasks;
-            _slash.SlashCommandErrored -= _exceptionHandler.OnSlashError;
+            _slash.SlashCommandErrored -= ExceptionHandler.OnSlashError;
 
             throw;
         }
@@ -54,7 +55,7 @@ public class Bot : BackgroundService
         try
         {
             _discordClient.Ready -= _botInitialization.InitializationTasks;
-            _slash.SlashCommandErrored -= _exceptionHandler.OnSlashError;
+            _slash.SlashCommandErrored -= ExceptionHandler.OnSlashError;
 
             _logger.LogInformation("OlliBot disconnecting...");
             await _discordClient.DisconnectAsync();
