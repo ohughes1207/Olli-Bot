@@ -1,6 +1,7 @@
 using DSharpPlus;
 using DSharpPlus.SlashCommands;
 using OlliBot.Modules;
+using OlliBot.Utilities;
 using Serilog;
 
 namespace OlliBot
@@ -73,6 +74,7 @@ namespace OlliBot
 
 
             builder.Services.AddTransient<BotInitialization>();
+            builder.Services.AddSingleton<ExceptionHandler>();
 
             try
             {
