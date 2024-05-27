@@ -5,15 +5,9 @@ using DSharpPlus;
 
 namespace OlliBot.Utilities
 {
-    public class ExceptionHandler
+    internal class ExceptionHandler
     {
-        private readonly ILogger<Bot> _logger;
-
-        public ExceptionHandler(ILogger<Bot> logger)
-        {
-            _logger = logger;
-        }
-        public async Task OnSlashError(SlashCommandsExtension sender, SlashCommandErrorEventArgs e)
+        public static async Task OnSlashError(SlashCommandsExtension sender, SlashCommandErrorEventArgs e)
         {
             // Check if the error is due to a failed check i.e on cooldown
             if (e.Exception is SlashExecutionChecksFailedException checksFailedException)
@@ -23,8 +17,10 @@ namespace OlliBot.Utilities
                     // Slash command is on cooldown
                     if (check is SlashCooldownAttribute cooldown)
                     {
+                        var cd = Math.Round(cooldown.GetRemainingCooldown(e.Context).TotalSeconds, 1);
+                        sender.Client.Logger.LogError($"Command is on cooldown (Cooldown remaining: {cd})");
                         await e.Context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DSharpPlus.Entities.DiscordInteractionResponseBuilder()
-                        .WithContent($"This command is on cooldown\nCooldown Remaining: {Math.Round(cooldown.GetRemainingCooldown(e.Context).TotalSeconds, 1)} seconds.")
+                        .WithContent($"This command is on cooldown\nCooldown Remaining: {cd} seconds.")
                         .AsEphemeral(true));
                     }
                     // Command failed because some other check failed (issue with permissions maybe?)
@@ -39,7 +35,7 @@ namespace OlliBot.Utilities
             else
             {
                 // Case for typical exceptions
-                _logger.LogError(e.Exception.Message);
+                sender.Client.Logger.LogError(e.Exception.Message);
             }
         }
     }
