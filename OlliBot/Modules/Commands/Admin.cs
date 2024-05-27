@@ -13,7 +13,6 @@ namespace OlliBot.Modules
         {
             try
             {
-
                 //Temp safety precaution to avoid someone mass deleting messages on accident
                 if (x > 20)
                 {
@@ -29,7 +28,7 @@ namespace OlliBot.Modules
                 int amount = (int)x;
                 var delMessages = filteredMessages.Take(amount);
 
-                Console.WriteLine((DateTimeOffset.UtcNow - delMessages.First().Timestamp).TotalDays);
+                //Console.WriteLine((DateTimeOffset.UtcNow - delMessages.First().Timestamp).TotalDays);
 
                 //Messages older than 14 days can't be bulk deleted so we split old and recent messages into two lists and delete them using appropriate methods
 
@@ -41,19 +40,17 @@ namespace OlliBot.Modules
 
                 await ctx.DeferAsync(true);
 
-                //Bulk delete recent messages
                 if (recentMessages.Count() > 0 )
                 {
                     await ctx.Channel.DeleteMessagesAsync(recentMessages);
                 }
 
-                //Loop through all old messages to delete
                 foreach (DiscordMessage m in oldMessages)
                 {
                     await ctx.Channel.DeleteMessageAsync(m);
                 }
 
-                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent($"---PURGE COMPLETE---\n{recentMessages.Count()} MESSAGES DELETED\n---PURGE COMPLETE---"));
+                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent($"lmao I just deleted {recentMessages.Count()} messages by {user.Username}"));
             }
             catch (Exception ex)
             {
