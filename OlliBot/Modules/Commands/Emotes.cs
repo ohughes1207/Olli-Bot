@@ -28,7 +28,6 @@ namespace OlliBot.Modules
 
                 foreach (var ch in channelList.Select(c => c.Value))
                 {
-                    Console.WriteLine(ch.Name);
 
                     ulong? lastMessageId = null;
 
@@ -77,8 +76,6 @@ namespace OlliBot.Modules
                 var header = "Emote Usage Ranking:";
                 var messageString = $"{header}\n{rankString}";
                 */
-
-                Console.WriteLine(sb.Length);
 
                 // Send the formatted string as a single message to the Discord channel
                 await ctx.Channel.SendMessageAsync(sb.ToString());
