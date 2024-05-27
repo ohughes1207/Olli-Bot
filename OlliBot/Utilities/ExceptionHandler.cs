@@ -5,7 +5,7 @@ using DSharpPlus;
 
 namespace OlliBot.Utilities
 {
-    internal class ExceptionHandler
+    public class ExceptionHandler
     {
         private readonly ILogger<Bot> _logger;
 
