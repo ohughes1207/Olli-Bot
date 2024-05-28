@@ -1,7 +1,6 @@
 using DSharpPlus;
 using DSharpPlus.SlashCommands;
 using OlliBot.Modules;
-using OlliBot.Utilities;
 using Serilog;
 
 namespace OlliBot
@@ -15,7 +14,8 @@ namespace OlliBot
 
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Information()
-                .WriteTo.Console()
+                .WriteTo.Console(outputTemplate: "{Timestamp:dd-MM-yyyy HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+                .Filter.ByExcluding(logEvent => logEvent.MessageTemplate.Text.Contains("GUILD_AUDIT_LOG_ENTRY_CREATE"))
                 .CreateLogger();
 
             builder.Logging.ClearProviders();
