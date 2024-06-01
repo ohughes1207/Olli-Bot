@@ -9,31 +9,43 @@
 
   <ItemGroup>
     <Compile Remove="Modules\Commands\Config.cs" />
+    <Compile Remove="Modules\Commands\Database.cs" />
+    <Compile Remove="Modules\Commands\Emotes.cs" />
     <Compile Remove="Modules\Commands\HumbleBundleCommands.cs" />
     <Compile Remove="Modules\Commands\TestToggleCommand.cs" />
+    <Compile Remove="Modules\Commands\Test_commands.cs" />
+    <Compile Remove="Modules\EventHandler.cs" />
     <Compile Remove="Modules\HumbleBundle.cs" />
     <Compile Remove="Utilities\ConfigManager.cs" />
+    <Compile Remove="Utilities\ExceptionHandler.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="Modules\Commands\Config.cs" />
+    <None Include="Modules\Commands\Emotes.cs" />
     <None Include="Modules\Commands\HumbleBundleCommands.cs" />
     <None Include="Modules\Commands\TestToggleCommand.cs" />
+    <None Include="Modules\Commands\Test_commands.cs" />
+    <None Include="Modules\EventHandler.cs" />
     <None Include="Modules\HumbleBundle.cs" />
     <None Include="Utilities\ConfigManager.cs" />
+    <None Include="Utilities\ExceptionHandler.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DSharpPlus" Version="4.4.6" />
-    <PackageReference Include="DSharpPlus.SlashCommands" Version="4.4.6" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.5" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.5" />
+    <PackageReference Include="Discord.Net" Version="3.15.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.6" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
-    <PackageReference Include="PuppeteerSharp" Version="17.0.0" />
-    <PackageReference Include="Serilog" Version="3.1.1" />
+    <PackageReference Include="PuppeteerSharp" Version="18.0.0" />
+    <PackageReference Include="Serilog" Version="4.0.0" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
     <PackageReference Include="System.Net.Security" Version="4.3.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Modules\Commands\Database.cs" />
   </ItemGroup>
 </Project>

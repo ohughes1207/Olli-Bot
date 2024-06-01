@@ -1,7 +1,10 @@
-using DSharpPlus;
-using DSharpPlus.SlashCommands;
+using Discord;
+using Discord.Interactions;
+using Discord.WebSocket;
+using Microsoft.VisualBasic;
 using OlliBot.Modules;
 using Serilog;
+using Serilog.Events;
 
 namespace OlliBot
 {
@@ -34,20 +37,27 @@ namespace OlliBot
                 return;
             }
 
-            builder.Services.AddSingleton<DiscordClient>((serviceProvider) =>
+            builder.Services.AddSingleton<DiscordSocketClient>((serviceProvider) =>
             {
                 var config = builder.Configuration;
 
                 try
                 {
-                    var discordClient = new DiscordClient(new DiscordConfiguration
+                    var discordClient = new DiscordSocketClient(new DiscordSocketConfig
                     {
+                        MessageCacheSize=5000,
+                        AlwaysDownloadUsers=true,
+                        GatewayIntents = /*GatewayIntents.AllUnprivileged | GatewayIntents.GuildMembers |*/ GatewayIntents.All
+                        /*
                         Token = config["DiscordBotToken"],
                         TokenType = TokenType.Bot,
                         AutoReconnect = true,
                         Intents = DiscordIntents.All,
                         LoggerFactory = new LoggerFactory().AddSerilog(Log.Logger)
+                        */
                     });
+
+                    discordClient.Log += LogAsync;
 
                     return discordClient;
                 }
@@ -58,23 +68,18 @@ namespace OlliBot
                 }
             });
 
-            builder.Services.AddSingleton<SlashCommandsExtension>((serviceProvider) =>
+            builder.Services.AddSingleton<InteractionService>((serviceProvider) =>
             {
-                var discordClient = serviceProvider.GetRequiredService<DiscordClient>();
+                var discordClient = serviceProvider.GetRequiredService<DiscordSocketClient>();
 
-                var slash = discordClient.UseSlashCommands(new SlashCommandsConfiguration
-                {
-                    Services = serviceProvider
-                });
+                var interaction = new InteractionService(discordClient.Rest);
 
-                SlashRegistry.RegisterCommands(slash);
-
-                return slash;
+                return interaction;
             });
 
 
             builder.Services.AddTransient<BotInitialization>();
-            builder.Services.AddSingleton<OlliBot.Modules.EventHandler>();
+            //builder.Services.AddSingleton<OlliBot.Modules.EventHandler>();
 
             try
             {
@@ -90,6 +95,21 @@ namespace OlliBot
                 Log.Information("Flushing logs...");
                 await Log.CloseAndFlushAsync();
             }
+        }
+        private static async Task LogAsync(LogMessage message)
+        {
+            var severity = message.Severity switch
+            {
+                LogSeverity.Critical => LogEventLevel.Fatal,
+                LogSeverity.Error => LogEventLevel.Error,
+                LogSeverity.Warning => LogEventLevel.Warning,
+                LogSeverity.Info => LogEventLevel.Information,
+                LogSeverity.Verbose => LogEventLevel.Verbose,
+                LogSeverity.Debug => LogEventLevel.Debug,
+                _ => LogEventLevel.Information
+            };
+            Log.Write(severity, message.Exception, "[{Source}] {Message}", message.Source, message.Message);
+            await Task.CompletedTask;
         }
     }
 }
