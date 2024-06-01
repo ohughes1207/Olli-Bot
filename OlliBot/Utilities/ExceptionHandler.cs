@@ -24,10 +24,18 @@ namespace OlliBot.Utilities
                         .AsEphemeral(true));
                     }
                     // Command failed because some other check failed (issue with permissions maybe?)
-                    else
+                    else if (check is SlashRequireUserPermissionsAttribute perms)
                     {
+                        sender.Client.Logger.LogWarning($"{e.Context.User} attmpted to invoke {e.Context.CommandName} without permissions");
                         await e.Context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DSharpPlus.Entities.DiscordInteractionResponseBuilder()
                         .WithContent("You do not have permission to use this command.")
+                        .AsEphemeral(true));
+                    }
+                    else
+                    {
+                        sender.Client.Logger.LogWarning($"{e.Context.User} attmpted to invoke {e.Context.CommandName} and something went wrong");
+                        await e.Context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DSharpPlus.Entities.DiscordInteractionResponseBuilder()
+                        .WithContent($"Couldn't invoke command for some reason lmao report it to {e.Context.Guild.GetMemberAsync(119904333750861824)}")
                         .AsEphemeral(true));
                     }
                 }

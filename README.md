@@ -1,8 +1,6 @@
 # OlliBot
 
-Discord self-bot written in C# using DSharpPlus. 
-Designed for easy integration of slash commands.
-
+Discord Bot written in C# using DSharpPlus. 
 
 
 ## Roadmap

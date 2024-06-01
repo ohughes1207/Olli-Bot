@@ -9,8 +9,17 @@ namespace OlliBot.Modules
 {
     public class EventHandler
     {
-        public static async Task OnMessage(DiscordClient Client, MessageCreateEventArgs args)
+        private readonly IConfiguration _configuration;
+
+        public EventHandler(IConfiguration configuration)
         {
+            _configuration = configuration;
+        }
+
+        public async Task OnMessage(DiscordClient Client, MessageCreateEventArgs args)
+        {
+            
+
             if (args.Message.Content.Length > 150 && args.Message.Author.Id!=Client.CurrentUser.Id)
             {
                 await Client.SendMessageAsync(args.Channel, new DiscordMessageBuilder().WithReply(args.Message.Id).WithContent("i ain't reading all that"));
@@ -19,7 +28,7 @@ namespace OlliBot.Modules
                 return;
             }
 
-            if (args.Message.Author.Id==164740251934392321 && new Random().Next(1, 101)<=10)
+            if (args.Message.Author.Id==164740251934392321 && args.Guild.Id.ToString() == _configuration["MainServer"] && new Random().Next(1, 101)<=15)
             {
                 await Client.SendMessageAsync(args.Channel, new DiscordMessageBuilder().WithReply(args.Message.Id).WithContent("James here"));
             }
@@ -28,7 +37,7 @@ namespace OlliBot.Modules
             // Add more logic to this event
         }
 
-        public static Task OnSlashInvoke(SlashCommandsExtension Slash, SlashCommandInvokedEventArgs args)
+        public Task OnSlashInvoke(SlashCommandsExtension Slash, SlashCommandInvokedEventArgs args)
         {
             StringBuilder logMessage = new StringBuilder();
             logMessage.Append($"Command invoked: {args.Context.CommandName} ");
@@ -56,7 +65,8 @@ namespace OlliBot.Modules
             Slash.Client.Logger.LogInformation($"{logMessage}");
             return Task.CompletedTask;
         }
-        public static Task OnSlashExecute(SlashCommandsExtension Slash, SlashCommandExecutedEventArgs args)
+
+        public Task OnSlashExecute(SlashCommandsExtension Slash, SlashCommandExecutedEventArgs args)
         {
             Slash.Client.Logger.LogInformation("Command executed successfully");
             return Task.CompletedTask;

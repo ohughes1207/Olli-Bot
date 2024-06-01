@@ -1,7 +1,6 @@
 using DSharpPlus;
 using DSharpPlus.SlashCommands;
 using OlliBot.Modules;
-using OlliBot.Utilities;
 using Serilog;
 
 namespace OlliBot
@@ -15,7 +14,8 @@ namespace OlliBot
 
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Information()
-                .WriteTo.Console()
+                .WriteTo.Console(outputTemplate: "{Timestamp:dd-MM-yyyy HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+                .Filter.ByExcluding(logEvent => logEvent.MessageTemplate.Text.Contains("Unknown event:"))
                 .CreateLogger();
 
             builder.Logging.ClearProviders();
@@ -74,6 +74,7 @@ namespace OlliBot
 
 
             builder.Services.AddTransient<BotInitialization>();
+            builder.Services.AddSingleton<OlliBot.Modules.EventHandler>();
 
             try
             {
