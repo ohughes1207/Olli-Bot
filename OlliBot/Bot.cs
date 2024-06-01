@@ -14,8 +14,9 @@ public class Bot : BackgroundService
     private readonly SlashCommandsExtension _slash;
     private readonly IConfiguration _configuration;
     private readonly BotInitialization _botInitialization;
+    private readonly OlliBot.Modules.EventHandler _eventHandler;
 
-    public Bot(ILogger<Bot> logger, DiscordClient discordClient, SlashCommandsExtension slash, IConfiguration configuration, BotInitialization botInitialization)
+    public Bot(ILogger<Bot> logger, DiscordClient discordClient, SlashCommandsExtension slash, IConfiguration configuration, BotInitialization botInitialization, OlliBot.Modules.EventHandler eventHandler)
     {
         //_logger = Log.ForContext<Bot>();
         _logger = logger;
@@ -23,16 +24,19 @@ public class Bot : BackgroundService
         _slash = slash;
         _configuration = configuration;
         _botInitialization = botInitialization;
+        _eventHandler = eventHandler;
     }
 
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("OlliBot starting...");
+
         _discordClient.Ready += _botInitialization.InitializationTasks;
 
+        _discordClient.MessageCreated += _eventHandler.OnMessage;
         _slash.SlashCommandErrored += ExceptionHandler.OnSlashError;
-        _slash.SlashCommandInvoked += OlliBot.Modules.EventHandler.OnSlashInvoke;
-        _slash.SlashCommandExecuted += OlliBot.Modules.EventHandler.OnSlashExecute;
+        _slash.SlashCommandInvoked += _eventHandler.OnSlashInvoke;
+        _slash.SlashCommandExecuted += _eventHandler.OnSlashExecute;
 
         _logger.LogInformation(_configuration["OwnerID"] ?? "Owner ID not configured");
         try
@@ -44,7 +48,11 @@ public class Bot : BackgroundService
             _logger.LogCritical($"Client failed to connect: {ex.Message}");
 
             _discordClient.Ready -= _botInitialization.InitializationTasks;
+
+            _discordClient.MessageCreated -= _eventHandler.OnMessage;
             _slash.SlashCommandErrored -= ExceptionHandler.OnSlashError;
+            _slash.SlashCommandInvoked -= _eventHandler.OnSlashInvoke;
+            _slash.SlashCommandExecuted -= _eventHandler.OnSlashExecute;
 
             throw;
         }

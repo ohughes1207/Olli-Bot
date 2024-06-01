@@ -20,8 +20,6 @@ namespace OlliBot.Modules
             _configuration["BotID"] = Client.CurrentUser.Id.ToString();
             _logger.LogInformation($"Bot ID: {_configuration["BotID"]}");
 
-            Client.MessageCreated += EventHandler.OnMessage;
-
             await Task.CompletedTask;
         }
     }
