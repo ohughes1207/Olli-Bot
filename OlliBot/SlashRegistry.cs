@@ -10,7 +10,7 @@ namespace OlliBot
         {
             slash.RegisterCommands<TestCommands>();
             slash.RegisterCommands<TestCommands2>();
-            slash.RegisterCommands<SimpleCommands>();
+            slash.RegisterCommands<BasicCommands>();
             //slash.RegisterCommands<TestToggleCommand>();
             slash.RegisterCommands<AdminCommands>();
             slash.RegisterCommands<DatabaseCommands>();
