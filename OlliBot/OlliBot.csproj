@@ -8,17 +8,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Modules\Commands\Config.cs" />
     <Compile Remove="Modules\Commands\HumbleBundleCommands.cs" />
-    <Compile Remove="Modules\Commands\SetCommands.cs" />
     <Compile Remove="Modules\Commands\TestToggleCommand.cs" />
     <Compile Remove="Modules\HumbleBundle.cs" />
+    <Compile Remove="Utilities\ConfigManager.cs" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="Modules\Commands\Config.cs" />
     <None Include="Modules\Commands\HumbleBundleCommands.cs" />
-    <None Include="Modules\Commands\SetCommands.cs" />
     <None Include="Modules\Commands\TestToggleCommand.cs" />
     <None Include="Modules\HumbleBundle.cs" />
+    <None Include="Utilities\ConfigManager.cs" />
   </ItemGroup>
 
   <ItemGroup>
