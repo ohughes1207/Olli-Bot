@@ -6,15 +6,15 @@ using OlliBot.Data;
 
 namespace OlliBot.Modules
 {
-    internal class DatabaseCommands : InteractionModuleBase<SocketInteractionContext>
+    public class DatabaseCommands : InteractionModuleBase<SocketInteractionContext>
     {
         //Command to add entries to database
-        [SlashCommand("DBAdd", "Add a discord message to the database")]
+        [SlashCommand("dbadd", "Add a discord message to the database")]
         public async Task AddMessage([Summary("message", "Enter a message ID or quote content")] string messageEntry,
         [Summary("title", "Title (Optional)")] string? Title = null,
         [Summary("origin", "Quote origin (Optional if using Message ID for input)")] SocketGuildUser? User = null,
         [Choice("Meme", "Meme")] [Choice("Quote", "Quote")] [Choice("Other", "Other")] [Summary("Type", "Type (If no value set then will be implicitly determined)")] string? MessageType = null)
-        {
+        {            
             //If input for message is not convertable to ulong assume it is a manually entered quote
             if (!ulong.TryParse(messageEntry, out ulong result))
             {
@@ -32,13 +32,12 @@ namespace OlliBot.Modules
             await DatabaseLogic.AddByID(Context, messageEntry, Title, MessageType);
         }
         //Command to call an entry from the database based on ID
-        [SlashCommand("DB", "Call entry by ID from the database")]
-        public async Task CallMessage(InteractionContext ctx,
-        [Summary("Query", "Message ID or Title")] string query)
+        [SlashCommand("db", "Call entry by ID from the database")]
+        public async Task CallMessage([Summary("Query", "Message ID or Title")] string query)
         {
             using (var db = new MessageDB())
             {
-                var guildMessages = db.Messages.AsQueryable().Where(x=> x.GuildId == ctx.Guild.Id);
+                var guildMessages = db.Messages.AsQueryable().Where(x=> x.GuildId == Context.Guild.Id);
                 
                 Message? queriedMessage;
 
@@ -52,21 +51,23 @@ namespace OlliBot.Modules
 
                 }
 
-                var responseBuilder = new DiscordInteractionResponseBuilder();
+                //var responseBuilder = new DiscordInteractionResponseBuilder();
 
 
                 if (queriedMessage is null)
                 {
-                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, responseBuilder.WithContent("No message found").AsEphemeral());
+                    await Context.Interaction.RespondAsync("No message found", ephemeral: true);
+                    //await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, responseBuilder.WithContent("No message found").AsEphemeral());
                     return;
                 }
 
 
                 if (queriedMessage.DiscordMessageId is null && queriedMessage.MessageType=="Quote")
                 {
-                    DiscordMember quoteOrigin = await ctx.Guild.GetMemberAsync(queriedMessage.MessageOriginId);
+                    IGuildUser quoteOrigin = Context.Guild.GetUser(queriedMessage.MessageOriginId);
                     string responseContent = $"\"{queriedMessage.Content}\" - {quoteOrigin.DisplayName}";
-                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, responseBuilder.WithContent(responseContent));
+                    await Context.Interaction.RespondAsync(responseContent);
+                    //await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, responseBuilder.WithContent(responseContent));
                 }
                 else
                 {
@@ -82,36 +83,43 @@ namespace OlliBot.Modules
                         }
                     }
 
-                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, responseBuilder.WithContent(responseContent));
+                    await Context.Interaction.RespondAsync(responseContent);
+                    //await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, responseBuilder.WithContent(responseContent));
                 }
             }
 
         }
-        [SlashCommand("DBDelete", "Delete an entry from the database")]
-        public async Task DeleteEntry(InteractionContext ctx,
-        [Option("Id", "Message ID")] double DbID)
+        [SlashCommand("dbdelete", "Delete an entry from the database")]
+        public async Task DeleteEntry([Summary("Id", "Database ID")] double DbID)
         {
+            SocketGuildUser user = (SocketGuildUser)Context.User;
+
             using (var db = new MessageDB())
             {
-                Message? queriedMessage = db.Messages.AsQueryable().Where(x => x.Id == DbID && x.GuildId == ctx.Guild.Id).FirstOrDefault();
+                Message? queriedMessage = db.Messages.AsQueryable().Where(x => x.Id == DbID && x.GuildId == Context.Guild.Id).FirstOrDefault();
 
                 if (queriedMessage is null)
                 {
-                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("No Entry found").AsEphemeral());
+                    await Context.Interaction.RespondAsync("No Entry found", ephemeral: true);
+                    //await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("No Entry found").AsEphemeral());
                     return;
                 }
 
-                if (queriedMessage.AuthorId!=ctx.User.Id && !ctx.Member.Permissions.HasPermission(Permissions.Administrator))
+                if (queriedMessage.AuthorId!=Context.User.Id && !user.GuildPermissions.Has(GuildPermission.Administrator))
                 {
-                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(ctx.Member.Permissions.HasPermission(Permissions.Administrator).ToString()));
+                    await Context.Interaction.RespondAsync(user.GuildPermissions.Has(GuildPermission.Administrator).ToString());
+                    //await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(ctx.Member.Permissions.HasPermission(Permissions.Administrator).ToString()));
                     return;
                 }
                 db.Messages.Remove(queriedMessage);
                 db.SaveChanges();
-                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Deleted entry").AsEphemeral());
+
+                await Context.Interaction.RespondAsync("Deleted entry", ephemeral: true);
+
+                //await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Deleted entry").AsEphemeral());
             }
         }
-        [SlashCommand("DBUpdate", "Update entry in database")]
+        [SlashCommand("dbupdate", "Update entry in database")]
         public async Task UpdateEntry([Summary("Id", "Message ID")] double DbID,
         [Summary("Title", "Updated title")] string? Title = null,
         [Choice("Meme", "Meme")] [Choice("Quote", "Quote")] [Choice("Other", "Other")] [Summary("Type", "Updated type")] string? MessageType = null)
@@ -127,7 +135,8 @@ namespace OlliBot.Modules
                     {
                         x=":lego_yoda:";
                     }
-                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(x).AsEphemeral());
+                    await Context.Interaction.RespondAsync(x, ephemeral: true);
+                    //await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(x).AsEphemeral());
                     return;
                 }
                 if (Title!=null)
@@ -140,16 +149,16 @@ namespace OlliBot.Modules
                 }
                 db.Messages.Update(queriedMessage);
                 await db.SaveChangesAsync();
-                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Updated entry").AsEphemeral());
+                await Context.Interaction.RespondAsync("Updated entry", ephemeral: true);
+                //await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Updated entry").AsEphemeral());
             }
         }
-        [SlashCommand("DBList", "List entries in database")]
-        public async Task ListEntries(InteractionContext ctx,
-        [Summary("User", "entries from user")] SocketUser? user = null)
+        [SlashCommand("dblist", "List entries in database")]
+        public async Task ListEntries([Summary("User", "entries from user")] SocketUser? user = null)
         {
             using (var db = new MessageDB())
             {
-                var messages = db.Messages.Where(m=> m.GuildId == ctx.Guild.Id);
+                var messages = db.Messages.Where(m=> m.GuildId == Context.Guild.Id);
                 /*
                 if (user!=null)
                 {
@@ -160,7 +169,8 @@ namespace OlliBot.Modules
 
                 if (messageList.Count == 0 )
                 {
-                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("No messages found").AsEphemeral());
+                    await Context.Interaction.RespondAsync("No messages found", ephemeral: true);
+                    //await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("No messages found").AsEphemeral());
                     return;
                 }
 
@@ -180,8 +190,8 @@ namespace OlliBot.Modules
                 embed.WithTitle("Olli Bot Database");
 
                 //embed.AddField("Author", authorString, true);
-                
-                await ctx.CreateResponseAsync(embed.Build());
+                await Context.Interaction.RespondAsync(embed: embed.Build());
+                //await ctx.CreateResponseAsync(embed.Build());
                 //await ctx.CreateResponseAsync(embed.Build(), true);
             }
         }
@@ -189,7 +199,7 @@ namespace OlliBot.Modules
 
     internal class DatabaseLogic
     {
-        internal static string GetMessageType(SocketMessage message)
+        internal static string GetMessageType(IMessage message)
         {
             if (message.Attachments.Count > 0  || message.Embeds.Count > 0)
             {
@@ -233,8 +243,8 @@ namespace OlliBot.Modules
                 {
                     foreach (var embed in message.Embeds)
                     {
-                        attList.Add(embed.Url.AbsoluteUri);
-                        messageContent = messageContent.Replace(embed.Url.AbsoluteUri, "");
+                        attList.Add(embed.Url);
+                        messageContent = messageContent.Replace(embed.Url, "");
                     }
                     messageContent=messageContent.Trim();
                 }
@@ -257,7 +267,9 @@ namespace OlliBot.Modules
 
                     await db.Messages.AddAsync(newMessage);
                     await db.SaveChangesAsync();
-                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Entry added to the database").AsEphemeral());
+
+                    await ctx.Interaction.RespondAsync("Entry added to the database", ephemeral: true);
+                    //await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Entry added to the database").AsEphemeral());
                 }
             }
             catch (Exception ex)
@@ -285,7 +297,9 @@ namespace OlliBot.Modules
 
                     await db.Messages.AddAsync(newQuote);
                     await db.SaveChangesAsync();
-                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Entry added to the database").AsEphemeral());
+
+                    await ctx.Interaction.RespondAsync("Entry added to the database", ephemeral: true);
+                    //await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Entry added to the database").AsEphemeral());
                 }
             }
             catch (Exception ex)
