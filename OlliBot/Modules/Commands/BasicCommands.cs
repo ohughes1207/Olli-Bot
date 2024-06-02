@@ -30,24 +30,23 @@ namespace OlliBot.Modules
         }
         
         [SlashCommand("info", "Get server info for a user")]
-        public async Task ServerInfo([Summary("user", "Specified user")] SocketGuildUser? user = null)
+        public async Task ServerInfo([Summary("user", "Specified user")] SocketGuildUser? member = null)
         {
-            user ??= Context.User as SocketGuildUser;
+            member ??= Context.User as SocketGuildUser ?? Context.Guild.GetUser(Context.User.Id);
 
-            var member = Context.Guild.GetUser(user.Id);
-            var nickname = member.Nickname ?? member.DisplayName ?? user.Username;
+            var nickname = member.Nickname ?? member.DisplayName ?? member.Username;
 
             //await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(user.AvatarUrl));
             var embed = new EmbedBuilder();
 
 
-            embed.WithTitle($"{member.Nickname} ({user.Username}) server info");
-            embed.AddField("Account Created:", $"{user.CreatedAt.ToString("yyyy/MM/dd  hh:mm")}", true);
+            embed.WithTitle($"{member.Nickname} ({member.Username}) server info");
+            embed.AddField("Account Created:", $"{member.CreatedAt.ToString("yyyy/MM/dd  hh:mm")}", true);
             embed.AddField("Join date:", $"{member.JoinedAt.Value.ToString("yyyy/MM/dd  hh:mm")}", true);
             //embed.AddField("Current Activity:", $"{user.Presence.Activity.ActivityType. ?? "Nothing"}", true);
             //embed.WithColor(DiscordColor.Orange);
             embed.WithColor(new Color(252, 177, 3));
-            embed.WithThumbnailUrl(user.GetAvatarUrl(ImageFormat.Auto, 1024));
+            embed.WithThumbnailUrl(member.GetAvatarUrl(ImageFormat.Auto, 1024));
             await RespondAsync(embed: embed.Build());
             //Console.Write(user);
         }
