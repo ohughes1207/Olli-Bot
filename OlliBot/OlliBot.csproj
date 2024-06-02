@@ -11,7 +11,6 @@
     <Compile Remove="Modules\Commands\Config.cs" />
     <Compile Remove="Modules\Commands\HumbleBundleCommands.cs" />
     <Compile Remove="Modules\Commands\TestToggleCommand.cs" />
-    <Compile Remove="Modules\Commands\Test_commands.cs" />
     <Compile Remove="Modules\HumbleBundle.cs" />
     <Compile Remove="SlashRegistry.cs" />
     <Compile Remove="Utilities\ConfigManager.cs" />
@@ -22,7 +21,6 @@
     <None Include="Modules\Commands\Config.cs" />
     <None Include="Modules\Commands\HumbleBundleCommands.cs" />
     <None Include="Modules\Commands\TestToggleCommand.cs" />
-    <None Include="Modules\Commands\Test_commands.cs" />
     <None Include="Modules\HumbleBundle.cs" />
     <None Include="SlashRegistry.cs" />
     <None Include="Utilities\ConfigManager.cs" />
