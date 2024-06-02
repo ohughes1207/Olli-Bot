@@ -1,6 +1,7 @@
 using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
+using OlliBot.Data;
 using OlliBot.Modules;
 
 namespace OlliBot;
@@ -13,9 +14,10 @@ public class Bot : BackgroundService
     private readonly InteractionService _interaction;
     private readonly IConfiguration _configuration;
     private readonly BotInitialization _botInitialization;
-    //private readonly OlliBot.Modules.EventHandler _eventHandler;
+    private readonly InteractionHandler _interactionHandler;
+    private readonly OlliBot.Modules.EventHandler _eventHandler;
 
-    public Bot(ILogger<Bot> logger, DiscordSocketClient client, InteractionService interaction, IConfiguration configuration , BotInitialization botInitialization )//, OlliBot.Modules.EventHandler eventHandler)
+    public Bot(ILogger<Bot> logger, DiscordSocketClient client, InteractionService interaction, IConfiguration configuration , BotInitialization botInitialization, InteractionHandler interactionHandler, OlliBot.Modules.EventHandler eventHandler)
     {
         //_logger = Log.ForContext<Bot>();
         _logger = logger;
@@ -23,8 +25,8 @@ public class Bot : BackgroundService
         _interaction = interaction;
         _configuration = configuration;
         _botInitialization = botInitialization;
-
-        //_eventHandler = eventHandler;
+        _interactionHandler = interactionHandler;
+        _eventHandler = eventHandler;
 
     }
 
@@ -33,7 +35,12 @@ public class Bot : BackgroundService
         _logger.LogInformation("OlliBot starting...");
         _client.Ready += _botInitialization.InitializationTasks;
 
-        _client.InteractionCreated += HandleInteraction;
+        _client.InteractionCreated += _interactionHandler.HandleInteraction;
+        _client.InteractionCreated += _interactionHandler.OnSlashInvoked;
+
+        _client.MessageReceived += _eventHandler.OnMessage;
+
+        _interaction.SlashCommandExecuted += _eventHandler.OnSlashExecute;
 
         /*
         _discordClient.MessageReceived += _eventHandler.OnMessage;
@@ -41,8 +48,6 @@ public class Bot : BackgroundService
         _slash.SlashCommandInvoked += _eventHandler.OnSlashInvoke;
         _slash.SlashCommandExecuted += _eventHandler.OnSlashExecute;
         */
-
-
 
         _logger.LogInformation(_configuration["OwnerID"] ?? "Owner ID not configured");
 
@@ -93,18 +98,6 @@ public class Bot : BackgroundService
         {
             _logger.LogCritical($"Error occured while shutting down: {ex.Message}");
             throw;
-        }
-    }
-    private async Task HandleInteraction(SocketInteraction arg)
-    {
-        try
-        {
-            var context = new SocketInteractionContext(_client, arg);
-            await _interaction.ExecuteCommandAsync(context, null);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogCritical($"Error handling interaction: {ex.Message}");
         }
     }
 

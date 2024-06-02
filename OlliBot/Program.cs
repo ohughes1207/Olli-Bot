@@ -79,7 +79,8 @@ namespace OlliBot
 
 
             builder.Services.AddTransient<BotInitialization>();
-            //builder.Services.AddSingleton<OlliBot.Modules.EventHandler>();
+            builder.Services.AddSingleton<InteractionHandler>();
+            builder.Services.AddSingleton<OlliBot.Modules.EventHandler>();
 
             try
             {

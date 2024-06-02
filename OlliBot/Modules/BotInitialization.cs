@@ -25,17 +25,18 @@ namespace OlliBot.Modules
         public async Task InitializationTasks()
         {
             _logger.LogInformation("Initialization tasks running...");
-            _logger.LogInformation($"Bot ID: {_configuration["BotID"]}");
-
-
+            _logger.LogInformation($"Bot ID: {_configuration["BotID"] ?? _client.CurrentUser.Id.ToString()}");
 
             _logger.LogInformation("Registering commands...");
             await _interaction.AddModulesAsync(Assembly.GetEntryAssembly(), _serviceProvider);
             await _interaction.RegisterCommandsGloballyAsync();
+
+            
             foreach (var item in _interaction.SlashCommands.ToList())
             {
                 _logger.LogInformation($"{item}");
             }
+            
             //_logger.LogInformation($"{_interaction.SlashCommands.All()}");
 
             await Task.CompletedTask;
