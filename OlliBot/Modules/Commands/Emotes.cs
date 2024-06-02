@@ -26,7 +26,7 @@ namespace OlliBot.Modules
                 }
 
                 //only text channels
-                var channelList = Context.Guild.Channels.OfType<SocketTextChannel>().ToList();
+                var channelList = Context.Guild.Channels.OfType<SocketTextChannel>().Where(ch => ch.GetChannelType() == ChannelType.Text);
 
                 await Context.Interaction.RespondAsync("Bot is working on counting emotes", ephemeral: true);
 
