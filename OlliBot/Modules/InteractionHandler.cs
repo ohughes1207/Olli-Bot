@@ -42,7 +42,7 @@ namespace OlliBot.Modules
 
             logMessage.Append($"Command invoked: {command.CommandName} ");
 
-            if (command.Data.Options != null)
+            if (command.Data.Options.Count!=0)
             {
                 logMessage.Append("(");
                 foreach (var option in command.Data.Options.Where(option => option != null))
