@@ -1,20 +1,19 @@
-using DSharpPlus;
-using DSharpPlus.Entities;
-using DSharpPlus.SlashCommands;
+using Discord;
+using Discord.Interactions;
+using Discord.WebSocket;
 using OlliBot.Data;
 
 
 namespace OlliBot.Modules
 {
-    internal class DatabaseCommands : ApplicationCommandModule
+    internal class DatabaseCommands : InteractionModuleBase<SocketInteractionContext>
     {
         //Command to add entries to database
         [SlashCommand("DBAdd", "Add a discord message to the database")]
-        public async Task AddMessage(InteractionContext ctx,
-        [Option("message", "Enter a message ID or quote content")] string messageEntry,
-        [Option("title", "Title (Optional)")] string? Title = null,
-        [Option("origin", "Quote origin (Optional if using Message ID for input)")] DiscordUser? User = null,
-        [Choice("Meme", "Meme")] [Choice("Quote", "Quote")] [Choice("Other", "Other")] [Option("Type", "Type (If no value set then will be implicitly determined)")] string? MessageType = null)
+        public async Task AddMessage([Summary("message", "Enter a message ID or quote content")] string messageEntry,
+        [Summary("title", "Title (Optional)")] string? Title = null,
+        [Summary("origin", "Quote origin (Optional if using Message ID for input)")] SocketGuildUser? User = null,
+        [Choice("Meme", "Meme")] [Choice("Quote", "Quote")] [Choice("Other", "Other")] [Summary("Type", "Type (If no value set then will be implicitly determined)")] string? MessageType = null)
         {
             //If input for message is not convertable to ulong assume it is a manually entered quote
             if (!ulong.TryParse(messageEntry, out ulong result))
@@ -22,20 +21,20 @@ namespace OlliBot.Modules
                 //If manually entered quote has no origin then respond with unsuccessful message
                 if (User is null)
                 {
-                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Entry unsuccessful, try again with a quote origin.").AsEphemeral());
+                    await Context.Interaction.RespondAsync("Entry unsuccessful, try again with a quote origin.", ephemeral: true);
                     return;
                 }
                 //Call method to add manually entered quotes
-                await DatabaseLogic.AddQuoteManual(ctx, messageEntry, User);
+                await DatabaseLogic.AddQuoteManual(Context, messageEntry, User);
                 return;
             }
             //If input for message is ulong then call method to add method to database from it's Id
-            await DatabaseLogic.AddByID(ctx, messageEntry, Title, MessageType);
+            await DatabaseLogic.AddByID(Context, messageEntry, Title, MessageType);
         }
         //Command to call an entry from the database based on ID
         [SlashCommand("DB", "Call entry by ID from the database")]
         public async Task CallMessage(InteractionContext ctx,
-        [Option("Query", "Message ID or Title")] string query)
+        [Summary("Query", "Message ID or Title")] string query)
         {
             using (var db = new MessageDB())
             {
@@ -113,19 +112,18 @@ namespace OlliBot.Modules
             }
         }
         [SlashCommand("DBUpdate", "Update entry in database")]
-        public async Task UpdateEntry(InteractionContext ctx,
-        [Option("Id", "Message ID")] double DbID,
-        [Option("Title", "Updated title")] string? Title = null,
-        [Choice("Meme", "Meme")] [Choice("Quote", "Quote")] [Choice("Other", "Other")] [Option("Type", "Updated type")] string? MessageType = null)
+        public async Task UpdateEntry([Summary("Id", "Message ID")] double DbID,
+        [Summary("Title", "Updated title")] string? Title = null,
+        [Choice("Meme", "Meme")] [Choice("Quote", "Quote")] [Choice("Other", "Other")] [Summary("Type", "Updated type")] string? MessageType = null)
         {
             using (var db = new MessageDB())
             {
-                var queriedMessage = db.Messages.AsQueryable().Where(x => x.Id == DbID && x.GuildId == ctx.Guild.Id).FirstOrDefault();
+                var queriedMessage = db.Messages.AsQueryable().Where(x => x.Id == DbID && x.GuildId == Context.Guild.Id).FirstOrDefault();
 
                 if (queriedMessage == null || (Title == null && MessageType == null))
                 {
                     string x="wat";
-                    if (ctx.Guild.Id==529624471351590922)
+                    if (Context.Guild.Id==529624471351590922)
                     {
                         x=":lego_yoda:";
                     }
@@ -147,7 +145,7 @@ namespace OlliBot.Modules
         }
         [SlashCommand("DBList", "List entries in database")]
         public async Task ListEntries(InteractionContext ctx,
-        [Option("User", "entries from user")] DiscordUser? user = null)
+        [Summary("User", "entries from user")] SocketUser? user = null)
         {
             using (var db = new MessageDB())
             {
@@ -172,13 +170,13 @@ namespace OlliBot.Modules
                 var typeString = string.Join("\n", messages.Select(m => m.MessageType));
                 var authorString = string.Join("\n", messages.Select(m => m.Author));
 
-                var embed = new DiscordEmbedBuilder();
+                var embed = new EmbedBuilder();
 
                 //Limited to 3 fields inline due to Discord css
                 embed.AddField("Id", idString, true);
                 embed.AddField("Title", titleString, true);
                 embed.AddField("Type", typeString, true);
-                embed.WithColor(DiscordColor.Yellow);
+                embed.WithColor(Color.Gold);
                 embed.WithTitle("Olli Bot Database");
 
                 //embed.AddField("Author", authorString, true);
@@ -191,7 +189,7 @@ namespace OlliBot.Modules
 
     internal class DatabaseLogic
     {
-        internal static string GetMessageType(DiscordMessage message)
+        internal static string GetMessageType(SocketMessage message)
         {
             if (message.Attachments.Count > 0  || message.Embeds.Count > 0)
             {
@@ -206,7 +204,7 @@ namespace OlliBot.Modules
                 return "Other";
             }
         }
-        internal static async Task AddByID(InteractionContext ctx, string messageID, string? Title, string? MessageType)
+        internal static async Task AddByID(SocketInteractionContext ctx, string messageID, string? Title, string? MessageType)
         {
             try
             {
@@ -268,7 +266,7 @@ namespace OlliBot.Modules
             }
         }
         
-        internal static async Task AddQuoteManual(InteractionContext ctx, string quoteContent, DiscordUser User)
+        internal static async Task AddQuoteManual(SocketInteractionContext ctx, string quoteContent, SocketUser User)
         {
             try
             {

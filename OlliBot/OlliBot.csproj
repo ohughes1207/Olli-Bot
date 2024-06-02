@@ -9,7 +9,6 @@
 
   <ItemGroup>
     <Compile Remove="Modules\Commands\Config.cs" />
-    <Compile Remove="Modules\Commands\Database.cs" />
     <Compile Remove="Modules\Commands\HumbleBundleCommands.cs" />
     <Compile Remove="Modules\Commands\TestToggleCommand.cs" />
     <Compile Remove="Modules\Commands\Test_commands.cs" />
@@ -41,9 +40,5 @@
     <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
     <PackageReference Include="System.Net.Security" Version="4.3.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Modules\Commands\Database.cs" />
   </ItemGroup>
 </Project>
