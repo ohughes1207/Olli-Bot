@@ -41,7 +41,7 @@ namespace OlliBot.Modules
 
                 await Context.Interaction.DeferAsync(ephemeral: true);
 
-                var channel = Context.Channel as ITextChannel;
+                var channel = (ITextChannel)Context.Channel;
 
                 if (recentMessages.Any())
                 {
