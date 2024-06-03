@@ -1,10 +1,10 @@
 using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
-using Microsoft.VisualBasic;
 using OlliBot.Modules;
 using Serilog;
 using Serilog.Events;
+using Serilog.Sinks.SystemConsole.Themes;
 
 namespace OlliBot
 {
@@ -17,7 +17,7 @@ namespace OlliBot
 
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Information()
-                .WriteTo.Console(outputTemplate: "{Timestamp:dd-MM-yyyy HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+                .WriteTo.Console(outputTemplate: "{Timestamp:dd-MM-yyyy HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}", theme: AnsiConsoleTheme.Literate)
                 .Filter.ByExcluding(logEvent => logEvent.MessageTemplate.Text.Contains("Unknown event:"))
                 .CreateLogger();
 
