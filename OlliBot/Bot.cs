@@ -80,7 +80,13 @@ public class Bot : BackgroundService
         {
 
             _client.Ready -= _botInitialization.InitializationTasks;
-            //_interaction -= ExceptionHandler.OnSlashError;
+
+            _client.InteractionCreated -= _interactionHandler.HandleInteraction;
+            _client.InteractionCreated -= _interactionHandler.OnSlashInvoked;
+
+            _client.MessageReceived -= _eventHandler.OnMessage;
+
+            _interaction.SlashCommandExecuted -= _eventHandler.OnSlashExecute;
 
             _logger.LogInformation("OlliBot disconnecting...");
             await _client.StopAsync();
