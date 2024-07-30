@@ -36,7 +36,7 @@ namespace OlliBot.Data
 
         public ulong MessageOriginId { get; set; }
 
-        public required string MessageType { get; set; }
+        public string MessageType { get; set; } = "Other";
         public required DateTime DateTimeAdded {get; set; }
     }
 }
