@@ -224,7 +224,7 @@ namespace OlliBot.Modules
 
     internal class DatabaseLogic
     {
-        internal static Message CreateMessageFromInput(IMessage message, string? Title, SocketInteractionContext ctx, string? messageType)
+        internal static Message CreateMessageFromInput(IMessage message, string? Title, IInteractionContext ctx, string? messageType)
         {
             var attList = new List<string>();
 
@@ -255,7 +255,7 @@ namespace OlliBot.Modules
 
             return entry;
         }
-        internal static Message CreateMessageFromInput(string entryContent, string? Title, SocketInteractionContext ctx, string? messageType, ulong originId)
+        internal static Message CreateMessageFromInput(string entryContent, string? Title, IInteractionContext ctx, string? messageType, ulong originId)
         {
             var entry = new Message
             {
