@@ -1,7 +1,11 @@
 using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using OlliBot.Data;
+using OlliBot.Utilities;
+using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 
 namespace OlliBot.Modules
@@ -13,10 +17,17 @@ namespace OlliBot.Modules
         public async Task AddMessage([Summary("message", "Enter a message ID or quote content")] string messageEntry,
         [Summary("title", "Title (Optional)")] string? Title = null,
         [Summary("origin", "Quote origin (Optional if using Message ID for input)")] SocketGuildUser? User = null,
-        [Choice("Meme", "Meme")] [Choice("Quote", "Quote")] [Choice("Other", "Other")] [Summary("Type", "Type (If no value set then will be implicitly determined)")] string? MessageType = null)
-        {            
+        [Choice("Meme", "Meme")] [Choice("Quote", "Quote")] [Choice("Other", "Other")] [Summary("Type", "Type (If no value set then will be implicitly determined)")] string? messageType = null)
+        {
+            Message entry;
+
+            if (ulong.TryParse(messageEntry, out ulong result))
+            {
+                var DiscordMessageObj = await Context.Interaction.Channel.GetMessageAsync(result);
+                entry = DatabaseLogic.CreateMessageFromInput(DiscordMessageObj, Title, Context, messageType);
+            }
             //If input for message is not convertable to ulong assume it is a manually entered quote
-            if (!ulong.TryParse(messageEntry, out ulong result))
+            else
             {
                 //If manually entered quote has no origin then respond with unsuccessful message
                 if (User is null)
@@ -24,13 +35,35 @@ namespace OlliBot.Modules
                     await Context.Interaction.RespondAsync("Entry unsuccessful, try again with a quote origin.", ephemeral: true);
                     return;
                 }
+                entry = DatabaseLogic.CreateMessageFromInput(messageEntry, Title, Context, messageType, User.Id);
                 //Call method to add manually entered quotes
-                await DatabaseLogic.AddQuoteManual(Context, messageEntry, User);
-                return;
+                //await DatabaseLogic.AddQuoteManual(Context, messageEntry, User);
+                //return;
             }
-            //If input for message is ulong then call method to add method to database from it's Id
-            await DatabaseLogic.AddByID(Context, messageEntry, Title, MessageType);
+
+            entry.MessageType = messageType ?? DatabaseLogic.GetMessageType(entry);
+
+            if (!string.IsNullOrEmpty(entry.Content) && Helpers.HasURL(entry.Content))
+            {
+                // Add logic here
+                var regex = new Regex(@"https?://[^\s/$.?#].[^\s]*");
+                var matches = regex.Matches(entry.Content).Select(m => m.Value).ToList();
+
+                entry.AttachmentUrls.AddRange(matches);
+
+                entry.Content = regex.Replace(entry.Content, string.Empty);
+            }
+
+            using (var db = new MessageDB())
+            {
+
+                await db.Messages.AddAsync(entry);
+                await db.SaveChangesAsync();
+
+                await Context.Interaction.RespondAsync("Entry added to the database", ephemeral: true);
+            }
         }
+
         //Command to call an entry from the database based on ID
         [SlashCommand("db", "Call entry by ID from the database")]
         public async Task CallMessage([Summary("Query", "Message ID or Title")] string query)
@@ -131,12 +164,7 @@ namespace OlliBot.Modules
                 if (queriedMessage == null || (Title == null && MessageType == null))
                 {
                     string x="wat";
-                    if (Context.Guild.Id==529624471351590922)
-                    {
-                        x=":lego_yoda:";
-                    }
                     await Context.Interaction.RespondAsync(x, ephemeral: true);
-                    //await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(x).AsEphemeral());
                     return;
                 }
                 if (Title!=null)
@@ -150,7 +178,6 @@ namespace OlliBot.Modules
                 db.Messages.Update(queriedMessage);
                 await db.SaveChangesAsync();
                 await Context.Interaction.RespondAsync("Updated entry", ephemeral: true);
-                //await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Updated entry").AsEphemeral());
             }
         }
         [SlashCommand("dblist", "List entries in database")]
@@ -159,11 +186,11 @@ namespace OlliBot.Modules
             using (var db = new MessageDB())
             {
                 var messages = db.Messages.Where(m=> m.GuildId == Context.Guild.Id);
-                /*
-                if (user!=null)
+                
+                if (user != null)
                 {
                     messages=messages.Where(m => m.AuthorId == user.Id);
-                }*/
+                }
 
                 var messageList = messages.ToList();
 
@@ -190,7 +217,7 @@ namespace OlliBot.Modules
                 embed.WithTitle("Olli Bot Database");
 
                 //embed.AddField("Author", authorString, true);
-                await Context.Interaction.RespondAsync(embed: embed.Build());
+                await Context.Interaction.RespondAsync(embed: embed.Build(), ephemeral: true);
                 //await ctx.CreateResponseAsync(embed.Build());
                 //await ctx.CreateResponseAsync(embed.Build(), true);
             }
@@ -199,9 +226,81 @@ namespace OlliBot.Modules
 
     internal class DatabaseLogic
     {
-        internal static string GetMessageType(IMessage message)
+        internal static Message CreateMessageFromInput(IMessage message, string? Title, SocketInteractionContext ctx, string? messageType)
         {
-            if (message.Attachments.Count > 0  || message.Embeds.Count > 0)
+            var attList = new List<string>();
+
+            string entryContent = message.Content;
+
+            //Attachment is a file upload attached to a message
+            if (message.Attachments.Count > 0)
+            {
+                foreach (var attachment in message.Attachments)
+                {
+                    attList.Add(attachment.Url);
+                }
+            }
+
+            var regex = new Regex(@"(http|https):\/\/[^\s/$.?#].[^\s]*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+            // Find all URLs in entryContent
+            var matches = regex.Matches(entryContent);
+            foreach (Match match in matches)
+            {
+                attList.Add(match.Value);
+            }
+
+            entryContent = regex.Replace(entryContent, string.Empty);
+
+
+            var entry = new Message
+            {
+                DiscordMessageId = message.Id,
+                GuildId = ctx.Guild.Id,
+                Title = Title,
+                Content = entryContent,
+                AttachmentUrls = attList,
+                Author = ctx.User.Username,
+                AuthorId = ctx.User.Id,
+                MessageOriginId = message.Author.Id,
+                DateTimeAdded = DateTime.UtcNow
+            };
+
+            return entry;
+        }
+        internal static Message CreateMessageFromInput(string entryContent, string? Title, SocketInteractionContext ctx, string? messageType, ulong originId)
+        {
+            var attList = new List<string>();
+
+            // CHECK IF entryContent is url here
+            var regex = new Regex(@"(http|https):\/\/[^\s/$.?#].[^\s]*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+            // Find all URLs in entryContent
+            var matches = regex.Matches(entryContent);
+            foreach (Match match in matches)
+            {
+                attList.Add(match.Value);
+            }
+
+            entryContent = regex.Replace(entryContent, string.Empty);
+
+            var entry = new Message
+            {
+                GuildId = ctx.Guild.Id,
+                Title = Title,
+                Content = entryContent,
+                AttachmentUrls = attList,
+                Author = ctx.User.Username,
+                AuthorId = ctx.User.Id,
+                MessageOriginId = originId,
+                DateTimeAdded = DateTime.UtcNow
+            };
+
+            return entry;
+        }
+        internal static string GetMessageType(Message message)
+        {
+            if (message.AttachmentUrls.Count > 0)
             {
                 return "Meme";
             }
@@ -212,99 +311,6 @@ namespace OlliBot.Modules
             else
             {
                 return "Other";
-            }
-        }
-        internal static async Task AddByID(SocketInteractionContext ctx, string messageID, string? Title, string? MessageType)
-        {
-            try
-            {
-                var channel = ctx.Channel;
-
-                ulong messageUlong = Convert.ToUInt64(messageID);
-                var message = await channel.GetMessageAsync(messageUlong);
-
-                if (MessageType == null)
-                {
-                    MessageType = GetMessageType(message);
-                }
-                string messageContent = message.Content;
-                var attList = new List<string>();
-
-                //Attachment is a file upload attached to a message
-                if (message.Attachments.Count > 0)
-                {
-                    foreach (var attachment in message.Attachments)
-                    {
-                        attList.Add(attachment.Url);
-                    }
-                }
-                //Embed is a image/video embedded from a link within the message content
-                if (message.Embeds.Count > 0)
-                {
-                    foreach (var embed in message.Embeds)
-                    {
-                        attList.Add(embed.Url);
-                        messageContent = messageContent.Replace(embed.Url, "");
-                    }
-                    messageContent=messageContent.Trim();
-                }
-
-                using (var db = new MessageDB())
-                {
-                    var newMessage = new Message
-                    {
-                        DiscordMessageId = message.Id,
-                        GuildId = ctx.Guild.Id,
-                        Title = Title,
-                        Content = messageContent,
-                        AttachmentUrls = attList,
-                        Author = ctx.User.Username,
-                        AuthorId = ctx.User.Id,
-                        MessageOriginId = message.Author.Id,
-                        MessageType = MessageType,
-                        DateTimeAdded = DateTime.UtcNow
-                    };
-
-                    await db.Messages.AddAsync(newMessage);
-                    await db.SaveChangesAsync();
-
-                    await ctx.Interaction.RespondAsync("Entry added to the database", ephemeral: true);
-                    //await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Entry added to the database").AsEphemeral());
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
-        }
-        
-        internal static async Task AddQuoteManual(SocketInteractionContext ctx, string quoteContent, SocketUser User)
-        {
-            try
-            {
-                using (var db = new MessageDB())
-                { 
-                    var newQuote = new Message
-                    {
-                        GuildId = ctx.Guild.Id,
-                        Content = quoteContent,
-                        Author = ctx.User.Username,
-                        AuthorId = ctx.User.Id,
-                        MessageOriginId = User.Id,
-                        MessageType = "Quote",
-                        DateTimeAdded = DateTime.UtcNow
-                    };
-
-                    await db.Messages.AddAsync(newQuote);
-                    await db.SaveChangesAsync();
-
-                    await ctx.Interaction.RespondAsync("Entry added to the database", ephemeral: true);
-                    //await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Entry added to the database").AsEphemeral());
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
             }
         }
     }
