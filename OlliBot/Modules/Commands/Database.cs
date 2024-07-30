@@ -1,10 +1,8 @@
 using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using OlliBot.Data;
 using OlliBot.Utilities;
-using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 
@@ -241,17 +239,6 @@ namespace OlliBot.Modules
                 }
             }
 
-            var regex = new Regex(@"(http|https):\/\/[^\s/$.?#].[^\s]*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-            // Find all URLs in entryContent
-            var matches = regex.Matches(entryContent);
-            foreach (Match match in matches)
-            {
-                attList.Add(match.Value);
-            }
-
-            entryContent = regex.Replace(entryContent, string.Empty);
-
 
             var entry = new Message
             {
@@ -270,26 +257,11 @@ namespace OlliBot.Modules
         }
         internal static Message CreateMessageFromInput(string entryContent, string? Title, SocketInteractionContext ctx, string? messageType, ulong originId)
         {
-            var attList = new List<string>();
-
-            // CHECK IF entryContent is url here
-            var regex = new Regex(@"(http|https):\/\/[^\s/$.?#].[^\s]*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-            // Find all URLs in entryContent
-            var matches = regex.Matches(entryContent);
-            foreach (Match match in matches)
-            {
-                attList.Add(match.Value);
-            }
-
-            entryContent = regex.Replace(entryContent, string.Empty);
-
             var entry = new Message
             {
                 GuildId = ctx.Guild.Id,
                 Title = Title,
                 Content = entryContent,
-                AttachmentUrls = attList,
                 Author = ctx.User.Username,
                 AuthorId = ctx.User.Id,
                 MessageOriginId = originId,
