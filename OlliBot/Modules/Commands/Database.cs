@@ -33,24 +33,12 @@ namespace OlliBot.Modules
                     await Context.Interaction.RespondAsync("Entry unsuccessful, try again with a quote origin.", ephemeral: true);
                     return;
                 }
-                entry = DatabaseLogic.CreateMessageFromInput(messageEntry, Title, Context, messageType, User.Id);
+                entry = DatabaseLogic.CreateMessageFromInput(messageEntry, Title, Context, messageType, User);
                 //Call method to add manually entered quotes
                 //await DatabaseLogic.AddQuoteManual(Context, messageEntry, User);
                 //return;
             }
 
-            entry.MessageType = messageType ?? DatabaseLogic.GetMessageType(entry);
-
-            if (!string.IsNullOrEmpty(entry.Content) && Helpers.HasURL(entry.Content))
-            {
-                // Add logic here
-                var regex = new Regex(@"https?://[^\s/$.?#].[^\s]*");
-                var matches = regex.Matches(entry.Content).Select(m => m.Value).ToList();
-
-                entry.AttachmentUrls.AddRange(matches);
-
-                entry.Content = regex.Replace(entry.Content, string.Empty);
-            }
 
             using (var db = new MessageDB())
             {
@@ -222,9 +210,9 @@ namespace OlliBot.Modules
         }
     }
 
-    internal class DatabaseLogic
+    public class DatabaseLogic
     {
-        internal static Message CreateMessageFromInput(IMessage message, string? Title, IInteractionContext ctx, string? messageType)
+        public static Message CreateMessageFromInput(IMessage message, string? Title, IInteractionContext ctx, string? messageType)
         {
             var attList = new List<string>();
 
@@ -253,10 +241,24 @@ namespace OlliBot.Modules
                 DateTimeAdded = DateTime.UtcNow
             };
 
+            if (!string.IsNullOrEmpty(entry.Content) && Helpers.HasURL(entry.Content))
+            {
+                // Add logic here
+                var regex = new Regex(@"https?://[^\s/$.?#].[^\s]*");
+                var matches = regex.Matches(entry.Content).Select(m => m.Value).ToList();
+
+                entry.AttachmentUrls.AddRange(matches);
+
+                entry.Content = regex.Replace(entry.Content, string.Empty);
+            }
+
+            entry.MessageType = messageType ?? GetMessageType(entry);
+
             return entry;
         }
-        internal static Message CreateMessageFromInput(string entryContent, string? Title, IInteractionContext ctx, string? messageType, ulong originId)
+        public static Message CreateMessageFromInput(string entryContent, string? Title, IInteractionContext ctx, string? messageType, IUser User)
         {
+
             var entry = new Message
             {
                 GuildId = ctx.Guild.Id,
@@ -264,19 +266,35 @@ namespace OlliBot.Modules
                 Content = entryContent,
                 Author = ctx.User.Username,
                 AuthorId = ctx.User.Id,
-                MessageOriginId = originId,
-                DateTimeAdded = DateTime.UtcNow
+                MessageOriginId = User.Id,
+                DateTimeAdded = DateTime.UtcNow,
             };
+
+            if (!string.IsNullOrEmpty(entry.Content) && Helpers.HasURL(entry.Content))
+            {
+                var regex = new Regex(@"https?://[^\s/$.?#].[^\s]*");
+
+                var matches = regex.Matches(entry.Content).Select(m => m.Value).ToList();
+
+                var currentAttachments = entry.AttachmentUrls;
+                currentAttachments.AddRange(matches);
+                entry.AttachmentUrls = currentAttachments;
+
+                entry.Content = regex.Replace(entry.Content, string.Empty).Trim();
+            }
+
+            entry.MessageType = messageType ?? GetMessageType(entry);
 
             return entry;
         }
-        internal static string GetMessageType(Message message)
+        public static string GetMessageType(Message message)
         {
-            if (message.AttachmentUrls.Count > 0)
+            var memeExtensions = new List<string> { ".png", ".jpeg", ".jpg", ".gif", ".mp4" };
+            if (message.AttachmentUrls.Count > 0 && (message.AttachmentUrls.Any(url => memeExtensions.Any(ex => url.Contains(ex)))))
             {
                 return "Meme";
             }
-            else if (message.Content != null)
+            else if (!string.IsNullOrEmpty(message.Content) && message.AttachmentUrls.Count == 0)
             {
                 return "Quote";
             }
