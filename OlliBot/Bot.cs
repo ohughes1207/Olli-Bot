@@ -1,76 +1,113 @@
-using DSharpPlus;
-using DSharpPlus.Entities;
-using DSharpPlus.SlashCommands;
-using DSharpPlus.SlashCommands.Attributes;
-using DSharpPlus.SlashCommands.EventArgs;
+using Discord;
+using Discord.Interactions;
+using Discord.WebSocket;
+using OlliBot.Data;
 using OlliBot.Modules;
 
 namespace OlliBot;
 
 public class Bot : BackgroundService
 {
+
     private readonly ILogger<Bot> _logger;
+    private readonly DiscordSocketClient _client;
+    private readonly InteractionService _interaction;
+    private readonly IConfiguration _configuration;
+    private readonly BotInitialization _botInitialization;
+    private readonly InteractionHandler _interactionHandler;
+    private readonly OlliBot.Modules.EventHandler _eventHandler;
 
-    private readonly DiscordClient _discordClient;
-
-    private readonly SlashCommandsExtension _slash;
-    public Bot(ILogger<Bot> logger, DiscordClient discordClient, SlashCommandsExtension slash)
+    public Bot(ILogger<Bot> logger, DiscordSocketClient client, InteractionService interaction, IConfiguration configuration , BotInitialization botInitialization, InteractionHandler interactionHandler, OlliBot.Modules.EventHandler eventHandler)
     {
+        //_logger = Log.ForContext<Bot>();
         _logger = logger;
-        _discordClient = discordClient;
-        _slash = slash;
+        _client = client;
+        _interaction = interaction;
+        _configuration = configuration;
+        _botInitialization = botInitialization;
+        _interactionHandler = interactionHandler;
+        _eventHandler = eventHandler;
+
     }
-    
+
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
-        Console.WriteLine("Started");
-        //_discordClient.Ready += BotInitialization.InitializationTasks;
-        //_slash.SlashCommandErrored += OnSlashError;
-        await _discordClient.ConnectAsync(new DiscordActivity("you :3", ActivityType.ListeningTo));
+        _logger.LogInformation("OlliBot starting...");
+        _client.Ready += _botInitialization.InitializationTasks;
+
+        _client.InteractionCreated += _interactionHandler.HandleInteraction;
+        _client.InteractionCreated += _interactionHandler.OnSlashInvoked;
+
+        _client.MessageReceived += _eventHandler.OnMessage;
+
+        _interaction.SlashCommandExecuted += _eventHandler.OnSlashExecute;
+
+        /*
+        _discordClient.MessageReceived += _eventHandler.OnMessage;
+        _slash.SlashCommandErrored += ExceptionHandler.OnSlashError;
+        _slash.SlashCommandInvoked += _eventHandler.OnSlashInvoke;
+        _slash.SlashCommandExecuted += _eventHandler.OnSlashExecute;
+        */
+
+        _logger.LogInformation(_configuration["OwnerID"] ?? "Owner ID not configured");
+
+        try
+        {
+            await _client.LoginAsync(TokenType.Bot, _configuration["DiscordBotToken"]);
+            await _client.StartAsync();
+        }
+        catch (Exception ex)
+        {
+
+            _logger.LogCritical($"Client failed to connect: {ex.Message}");
+
+            /*
+            _discordClient.Ready -= _botInitialization.InitializationTasks;
+
+            _discordClient.MessageCreated -= _eventHandler.OnMessage;
+            _slash.SlashCommandErrored -= ExceptionHandler.OnSlashError;
+            _slash.SlashCommandInvoked -= _eventHandler.OnSlashInvoke;
+            _slash.SlashCommandExecuted -= _eventHandler.OnSlashExecute;
+            */
+
+            throw;
+        }
     }
+
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
-        Console.WriteLine("STOPPING");
-        await _discordClient.DisconnectAsync();
-        _discordClient.Dispose();
-        _logger.LogInformation("Bot client disposed.");
-        //_slash.Dispose();
+        try
+        {
+
+            _client.Ready -= _botInitialization.InitializationTasks;
+
+            _client.InteractionCreated -= _interactionHandler.HandleInteraction;
+            _client.InteractionCreated -= _interactionHandler.OnSlashInvoked;
+
+            _client.MessageReceived -= _eventHandler.OnMessage;
+
+            _interaction.SlashCommandExecuted -= _eventHandler.OnSlashExecute;
+
+            _logger.LogInformation("OlliBot disconnecting...");
+            await _client.StopAsync();
+            await _client.LogoutAsync();
+            _logger.LogInformation("Ollibot disconnected...");
+
+            _logger.LogInformation("Disposing client...");
+            _interaction.Dispose();
+            _client.Dispose();
+            _logger.LogInformation("Bot client disposed...");
+
+            _logger.LogInformation("OlliBot shutting down...");
+        }
+        catch (Exception ex) 
+        {
+            _logger.LogCritical($"Error occured while shutting down: {ex.Message}");
+            throw;
+        }
     }
 
+    //Only returns Task.CompletedTask to satisfy implementation requirement for BackgroundService
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        //Console.WriteLine("Executed");
-        return Task.CompletedTask;
-    }
-
-    //Move this logic to a new class
-    private async Task OnSlashError(SlashCommandsExtension sender, SlashCommandErrorEventArgs e)
-    {
-        // Check if the error is due to a failed check i.e on cooldown
-        if (e.Exception is SlashExecutionChecksFailedException checksFailedException)
-        {
-            foreach (var check in checksFailedException.FailedChecks)
-            {
-                // Slash command is on cooldown
-                if (check is SlashCooldownAttribute cooldown)
-                {
-                    await e.Context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DSharpPlus.Entities.DiscordInteractionResponseBuilder()
-                    .WithContent($"This command is on cooldown. Please wait {Math.Round(cooldown.GetRemainingCooldown(e.Context).TotalSeconds, 1)} seconds.")
-                    .AsEphemeral(true));
-                }
-                // Command failed because some other check failed (issue with permissions maybe?)
-                else
-                {
-                    await e.Context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DSharpPlus.Entities.DiscordInteractionResponseBuilder()
-                    .WithContent("You do not have permission to use this command.")
-                    .AsEphemeral(true));
-                }
-            }
-        }
-        else
-        {
-            // Case for typical exceptions
-            Console.WriteLine(e.Exception);
-        }
-    }
+        => Task.CompletedTask;
 }

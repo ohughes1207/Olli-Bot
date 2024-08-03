@@ -1,40 +1,45 @@
-using DSharpPlus;
-using DSharpPlus.SlashCommands;
-using DSharpPlus.Entities;
-using DSharpPlus.SlashCommands.Attributes;
+using Discord;
+using Discord.Interactions;
+using Discord.WebSocket;
 using System.Text;
 
 namespace OlliBot.Modules
 {
-    internal class Emotes : ApplicationCommandModule
+    public class Emotes : InteractionModuleBase<SocketInteractionContext>
     {
-        [SlashCommand("Emoterank", "Emote rankings")]
-        [SlashCooldown(1, 600, SlashCooldownBucketType.Guild)]
-        public async Task RankEmotes(InteractionContext ctx)
+        [SlashCommand("emoterank", "Emote rankings")]
+        public async Task RankEmotes()
         {
             try
             {
-                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Bot is working on counting emotes").AsEphemeral());
                 
                 //Dictionary of emotes and an integer indicating number of uses 
-                var emoteCounts = new Dictionary<DiscordEmoji, int>();
+                var emoteCounts = new Dictionary<GuildEmote, int>();
 
                 //only emotes that are available
-                var emoteList = ctx.Guild.Emojis.Where(e => e.Value.IsAvailable);
+                var emoteList = Context.Guild.Emotes;
+
+                if (emoteList.Count==0)
+                {
+                    await Context.Interaction.RespondAsync("No emotes found", ephemeral: true);
+                    return;
+                }
 
                 //only text channels
-                var channelList = ctx.Guild.Channels.Where(c => !c.Value.IsCategory && c.Value.Type==0);
+                var channelList = Context.Guild.Channels.OfType<SocketTextChannel>().Where(ch => ch.GetChannelType() == ChannelType.Text);
 
+                await Context.Interaction.RespondAsync("Bot is working on counting emotes", ephemeral: true);
 
-                foreach (var ch in channelList.Select(c => c.Value))
+                foreach (var ch in channelList)
                 {
-                    Console.WriteLine(ch.Name);
+                    Console.WriteLine(ch.Name );
 
-                    ulong? lastMessageId = null;
+
+                    IMessage? lastMessage = null;
 
                     while (true)
                     {
-                        IReadOnlyList<DiscordMessage> messages = lastMessageId == null ? await ch.GetMessagesAsync(100) : await ch.GetMessagesBeforeAsync(lastMessageId.Value, 100);
+                        var messages = (await (lastMessage == null ? ch.GetMessagesAsync(100).FlattenAsync() : ch.GetMessagesAsync(lastMessage, Direction.Before, 100).FlattenAsync())).ToList()  ;
 
                         if (messages.Count == 0)
                         {
@@ -43,11 +48,11 @@ namespace OlliBot.Modules
 
                         //lastMessageId = messages.Last().Id;
 
-                        lastMessageId = messages[messages.Count - 1].Id;
+                        lastMessage = messages[messages.Count - 1];
 
-                        foreach (var e in emoteList.Select(e => e.Value))
+                        foreach (var e in emoteList)
                         {
-                            var count = messages.Count(m => (m.Content.Contains(e) || m.Reactions.Any(reaction => reaction.Emoji.Equals(e))) && m.Author.Id!=1118358168708329543);
+                            var count = messages.Count(m => (m.Content.Contains(e.ToString()) || m.Reactions.Any(reaction => reaction.Key.Equals(e))) && m.Author.Id!=1118358168708329543);
                             //int count = filteredMessages.Count();
 
                             if (emoteCounts.ContainsKey(e))
@@ -78,10 +83,8 @@ namespace OlliBot.Modules
                 var messageString = $"{header}\n{rankString}";
                 */
 
-                Console.WriteLine(sb.Length);
-
                 // Send the formatted string as a single message to the Discord channel
-                await ctx.Channel.SendMessageAsync(sb.ToString());
+                await Context.Channel.SendMessageAsync(sb.ToString());
             }
             catch (Exception e)
             {

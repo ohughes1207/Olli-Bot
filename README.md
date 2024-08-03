@@ -1,8 +1,6 @@
 # OlliBot
 
-Discord Bot written in C# using DSharpPlus. 
-Designed for easy integration of slash commands.
-
+Discord Bot written in C# using Discord.Net.
 
 
 ## Roadmap
@@ -13,6 +11,6 @@ Designed for easy integration of slash commands.
 - [x] SQLite Database
 - [x] Entity Framework Core CRUD operations
 - [x] Custom emote leaderboard (To show which emotes are most used in a server)
-- [ ] Unit tests
+- [x] Unit tests
 - [ ] Additional event subscriptions (check messages on create + update, etc)
 - [ ] Literally any other ideas I can come up with

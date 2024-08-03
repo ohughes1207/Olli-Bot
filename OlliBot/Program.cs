@@ -1,62 +1,116 @@
-using DSharpPlus;
-using DSharpPlus.SlashCommands;
-using OlliBot.Data;
+using Discord;
+using Discord.Interactions;
+using Discord.WebSocket;
+using OlliBot.Modules;
+using Serilog;
+using Serilog.Events;
+using Serilog.Sinks.SystemConsole.Themes;
 
 namespace OlliBot
 {
     internal class Program
     {
-        private static void Main(string[] args)
+        private static async Task Main(string[] args)
         {
             var builder = Host.CreateApplicationBuilder(args);
 
+
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Information()
+                .WriteTo.Console(outputTemplate: "{Timestamp:dd-MM-yyyy HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}", theme: AnsiConsoleTheme.Literate)
+                .Filter.ByExcluding(logEvent => logEvent.MessageTemplate.Text.Contains("Unknown event:"))
+                .CreateLogger();
+
+            builder.Logging.ClearProviders();
+            builder.Logging.AddSerilog();
+            
+
             builder.Services.AddHostedService<Bot>();
 
-            builder.Configuration.AddJsonFile("config.json", optional: false, reloadOnChange: true);
+            try
+            {
+                builder.Configuration.AddJsonFile("config.json", optional: false, reloadOnChange: true);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Failed to load config.json: {ex.Message}");
+                return;
+            }
 
-            builder.Services.AddSingleton<DiscordClient>((serviceProvider) =>
+            builder.Services.AddSingleton<DiscordSocketClient>((serviceProvider) =>
             {
                 var config = builder.Configuration;
 
-                var discordClient = new DiscordClient(new DiscordConfiguration
+                try
                 {
-                    Token = config["DiscordBotToken"],
-                    TokenType = TokenType.Bot,
-                    AutoReconnect = true,
-                    Intents = DiscordIntents.All
-                });
+                    var discordClient = new DiscordSocketClient(new DiscordSocketConfig
+                    {
+                        MessageCacheSize=5000,
+                        AlwaysDownloadUsers=true,
+                        GatewayIntents = /*GatewayIntents.AllUnprivileged | GatewayIntents.GuildMembers |*/ GatewayIntents.All
+                        /*
+                        Token = config["DiscordBotToken"],
+                        TokenType = TokenType.Bot,
+                        AutoReconnect = true,
+                        Intents = DiscordIntents.All,
+                        LoggerFactory = new LoggerFactory().AddSerilog(Log.Logger)
+                        */
+                    });
 
-                /*
-                var slash = discordClient.UseSlashCommands(new SlashCommandsConfiguration
+                    discordClient.Log += LogAsync;
+
+                    return discordClient;
+                }
+                catch (Exception ex)
                 {
-                    Services = serviceProvider
-                });
-
-                SlashRegistry.RegisterCommands(slash);
-                */
-
-                return discordClient;
+                    Log.Error($"Failed to initialize Discord client: {ex.Message}");
+                    throw;
+                }
             });
 
-            builder.Services.AddSingleton<SlashCommandsExtension>((serviceProvider) =>
+            builder.Services.AddSingleton<InteractionService>((serviceProvider) =>
             {
-                var discordClient = serviceProvider.GetRequiredService<DiscordClient>();
+                var discordClient = serviceProvider.GetRequiredService<DiscordSocketClient>();
 
-                var slash = discordClient.UseSlashCommands(new SlashCommandsConfiguration
-                {
-                    Services = serviceProvider
-                });
+                var interaction = new InteractionService(discordClient.Rest);
 
-                SlashRegistry.RegisterCommands(slash);
-
-                return slash;
+                return interaction;
             });
 
-            Console.WriteLine(builder.Configuration["BotID"]);
 
-            var host = builder.Build();
-            //Console.Write(builder.Services.GetType());
-            host.Run();
+            builder.Services.AddTransient<BotInitialization>();
+            builder.Services.AddSingleton<InteractionHandler>();
+            builder.Services.AddSingleton<OlliBot.Modules.EventHandler>();
+
+            try
+            {
+                var host = builder.Build();
+                host.Run();
+            }
+            catch (Exception ex) 
+            {
+                Log.Error($"Host failed to run: {ex.Message}");
+            }
+            finally
+            {
+                Log.Information("Flushing logs...");
+                await Log.CloseAndFlushAsync();
+            }
+        }
+        private static async Task LogAsync(LogMessage message)
+        {
+            var severity = message.Severity switch
+            {
+                LogSeverity.Critical => LogEventLevel.Fatal,
+                LogSeverity.Error => LogEventLevel.Error,
+                LogSeverity.Warning => LogEventLevel.Warning,
+                LogSeverity.Info => LogEventLevel.Information,
+                LogSeverity.Verbose => LogEventLevel.Verbose,
+                LogSeverity.Debug => LogEventLevel.Debug,
+                _ => LogEventLevel.Information
+            };
+            Log.Write(severity, message.Exception, "[{Source}] {Message}", message.Source, message.Message);
+            await Task.CompletedTask;
         }
     }
 }
