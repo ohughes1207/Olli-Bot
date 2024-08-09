@@ -56,20 +56,8 @@ namespace OlliBot.Modules
                 logMessage.Append(") ");
             }
             logMessage.Append($"by {command.User.Username}, {command.User.Id}");
-            /* 
-            if (!string.IsNullOrEmpty((SocketGuildUser)command.))
-            {
-                logMessage.Append($" ({args.Context.Member.Nickname})");
-            }
-            */
             _logger.LogInformation($"{logMessage}");
             return Task.CompletedTask;
         }
-        /*
-        public Task OnSlashExecute(SlashCommandsExtension Slash, SlashCommandExecutedEventArgs args)
-        {
-            Slash.Client.Logger.LogInformation("Command executed successfully");
-            return Task.CompletedTask;
-        }*/
     }
 }

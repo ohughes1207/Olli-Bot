@@ -34,9 +34,7 @@ namespace OlliBot.Modules
                     return;
                 }
                 entry = DatabaseLogic.CreateMessageFromInput(messageEntry, Title, Context, messageType, User);
-                //Call method to add manually entered quotes
-                //await DatabaseLogic.AddQuoteManual(Context, messageEntry, User);
-                //return;
+
             }
 
 
@@ -70,13 +68,12 @@ namespace OlliBot.Modules
 
                 }
 
-                //var responseBuilder = new DiscordInteractionResponseBuilder();
 
 
                 if (queriedMessage is null)
                 {
                     await Context.Interaction.RespondAsync("No message found", ephemeral: true);
-                    //await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, responseBuilder.WithContent("No message found").AsEphemeral());
+
                     return;
                 }
 
@@ -86,7 +83,6 @@ namespace OlliBot.Modules
                     IGuildUser quoteOrigin = Context.Guild.GetUser(queriedMessage.MessageOriginId);
                     string responseContent = $"\"{queriedMessage.Content}\" - {quoteOrigin.DisplayName}";
                     await Context.Interaction.RespondAsync(responseContent);
-                    //await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, responseBuilder.WithContent(responseContent));
                 }
                 else
                 {
@@ -103,7 +99,6 @@ namespace OlliBot.Modules
                     }
 
                     await Context.Interaction.RespondAsync(responseContent);
-                    //await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, responseBuilder.WithContent(responseContent));
                 }
             }
 
@@ -120,22 +115,18 @@ namespace OlliBot.Modules
                 if (queriedMessage is null)
                 {
                     await Context.Interaction.RespondAsync("No Entry found", ephemeral: true);
-                    //await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("No Entry found").AsEphemeral());
                     return;
                 }
 
                 if (queriedMessage.AuthorId!=Context.User.Id && !user.GuildPermissions.Has(GuildPermission.Administrator))
                 {
                     await Context.Interaction.RespondAsync(user.GuildPermissions.Has(GuildPermission.Administrator).ToString());
-                    //await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(ctx.Member.Permissions.HasPermission(Permissions.Administrator).ToString()));
                     return;
                 }
                 db.Messages.Remove(queriedMessage);
                 db.SaveChanges();
 
                 await Context.Interaction.RespondAsync("Deleted entry", ephemeral: true);
-
-                //await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Deleted entry").AsEphemeral());
             }
         }
         [SlashCommand("dbupdate", "Update entry in database")]
@@ -183,7 +174,6 @@ namespace OlliBot.Modules
                 if (messageList.Count == 0 )
                 {
                     await Context.Interaction.RespondAsync("No messages found", ephemeral: true);
-                    //await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("No messages found").AsEphemeral());
                     return;
                 }
 
@@ -202,10 +192,7 @@ namespace OlliBot.Modules
                 embed.WithColor(Color.Gold);
                 embed.WithTitle("Olli Bot Database");
 
-                //embed.AddField("Author", authorString, true);
                 await Context.Interaction.RespondAsync(embed: embed.Build(), ephemeral: true);
-                //await ctx.CreateResponseAsync(embed.Build());
-                //await ctx.CreateResponseAsync(embed.Build(), true);
             }
         }
     }

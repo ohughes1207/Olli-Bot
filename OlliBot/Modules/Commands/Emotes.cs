@@ -46,14 +46,11 @@ namespace OlliBot.Modules
                             break;
                         }
 
-                        //lastMessageId = messages.Last().Id;
-
                         lastMessage = messages[messages.Count - 1];
 
                         foreach (var e in emoteList)
                         {
                             var count = messages.Count(m => (m.Content.Contains(e.ToString()) || m.Reactions.Any(reaction => reaction.Key.Equals(e))) && m.Author.Id!=1118358168708329543);
-                            //int count = filteredMessages.Count();
 
                             if (emoteCounts.ContainsKey(e))
                             {
@@ -76,14 +73,6 @@ namespace OlliBot.Modules
                     sb.AppendLine($"{kv.Key}  -  {kv.Value}");
                 }
 
-                /*
-                var rankString = string.Join("\n", emoteCounts.OrderByDescending(kv => kv.Value).Select(kv => $"{kv.Key}  -  {kv.Value}"));
-
-                var header = "Emote Usage Ranking:";
-                var messageString = $"{header}\n{rankString}";
-                */
-
-                // Send the formatted string as a single message to the Discord channel
                 await Context.Channel.SendMessageAsync(sb.ToString());
             }
             catch (Exception e)

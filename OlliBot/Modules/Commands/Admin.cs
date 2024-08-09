@@ -25,8 +25,6 @@ namespace OlliBot.Modules
                                        where m.Author.Id == user.Id
                                        select m;
 
-                //int amount = (int)x;
-
                 var delMessages = filteredMessages.Take(amount);
 
                 //Console.WriteLine((DateTimeOffset.UtcNow - delMessages.First().Timestamp).TotalDays);
@@ -56,7 +54,6 @@ namespace OlliBot.Modules
                 {
                     msg.Content = $"lmao I just deleted {recentMessages.Count()} messages by {user.Username}";
                 });
-                //await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent($"lmao I just deleted {recentMessages.Count()} messages by {user.Username}"));
             }
             catch (Exception ex)
             {

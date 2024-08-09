@@ -1,7 +1,6 @@
 using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
-using OlliBot.Data;
 using OlliBot.Modules;
 
 namespace OlliBot;
@@ -42,13 +41,6 @@ public class Bot : BackgroundService
 
         _interaction.SlashCommandExecuted += _eventHandler.OnSlashExecute;
 
-        /*
-        _discordClient.MessageReceived += _eventHandler.OnMessage;
-        _slash.SlashCommandErrored += ExceptionHandler.OnSlashError;
-        _slash.SlashCommandInvoked += _eventHandler.OnSlashInvoke;
-        _slash.SlashCommandExecuted += _eventHandler.OnSlashExecute;
-        */
-
         _logger.LogInformation(_configuration["OwnerID"] ?? "Owner ID not configured");
 
         try
@@ -60,15 +52,6 @@ public class Bot : BackgroundService
         {
 
             _logger.LogCritical($"Client failed to connect: {ex.Message}");
-
-            /*
-            _discordClient.Ready -= _botInitialization.InitializationTasks;
-
-            _discordClient.MessageCreated -= _eventHandler.OnMessage;
-            _slash.SlashCommandErrored -= ExceptionHandler.OnSlashError;
-            _slash.SlashCommandInvoked -= _eventHandler.OnSlashInvoke;
-            _slash.SlashCommandExecuted -= _eventHandler.OnSlashExecute;
-            */
 
             throw;
         }
