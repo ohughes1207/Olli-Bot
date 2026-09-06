@@ -85,6 +85,7 @@ public class GeneralSlashCommands(ILogger<GeneralSlashCommands> logger, IConfigu
     }
 
     [SlashCommand("headpat", "give headpats")]
+    [RequireContext(ContextType.Guild | ContextType.Group)]
     public async Task CreateHeadPatButton()
     {
         const ulong myId = 119904333750861824;
@@ -144,6 +145,7 @@ public class GeneralSlashCommands(ILogger<GeneralSlashCommands> logger, IConfigu
         }
         catch (Exception ex)
         {
+            await Context.Interaction.RespondAsync(ex.Message, ephemeral: true);
             logger.LogError(ex, "Failed to process command");
         }
     }
