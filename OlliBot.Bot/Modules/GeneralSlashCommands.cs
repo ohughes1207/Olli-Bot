@@ -1,10 +1,36 @@
-using Discord;
+﻿using Discord;
 using Discord.Interactions;
 
 namespace OlliBot.Bot.Modules;
 
-public class GeneralSlashCommands : InteractionModuleBase<SocketInteractionContext>
+public class GeneralSlashCommands(ILogger<GeneralSlashCommands> logger, IConfiguration configuration, IDiscordClient discordClient) : InteractionModuleBase<SocketInteractionContext>
 {
+    private static readonly string[] GifCollection =
+    [
+        "https://c.tenor.com/7xrOS-GaGAIAAAAd/tenor.gif",//
+        "https://c.tenor.com/XvgNEZWCQwgAAAAd/tenor.gif",
+        "https://c.tenor.com/ozunReUPzCMAAAAd/tenor.gif",
+        "https://c.tenor.com/5Epx4bEKJA4AAAAd/tenor.gif",
+        "https://c.tenor.com/8FOQORmaLNoAAAAd/tenor.gif",
+        "https://c.tenor.com/prf8e9xuagwAAAAd/tenor.gif",
+        "https://c.tenor.com/rtHwrLRPlAkAAAAd/tenor.gif",
+        "https://c.tenor.com/1vt_6_y0nQsAAAAd/tenor.gif",
+        "https://c.tenor.com/CQfnJKBouuIAAAAd/tenor.gif",
+        "https://c.tenor.com/5a4O1hOHucgAAAAd/tenor.gif",
+        "https://c.tenor.com/2IXwqmUciHAAAAAd/tenor.gif",
+        "https://c.tenor.com/GqIs6RMWlQ4AAAAd/tenor.gif",
+        "https://c.tenor.com/rolIhVHxETIAAAAd/tenor.gif",
+        "https://c.tenor.com/N41zKEDABuUAAAAd/tenor.gif",
+        "https://c.tenor.com/-hkJYNs7tUkAAAAd/tenor.gif",
+        "https://c.tenor.com/YMRmKEdwZCgAAAAd/tenor.gif",
+        "https://c.tenor.com/wLqFGYigJuIAAAAd/tenor.gif",
+        "https://c.tenor.com/XrFi4FThPFYAAAAd/tenor.gif",
+        "https://c.tenor.com/Vw4wf7gsD4cAAAAd/tenor.gif",
+        "https://c.tenor.com/OvrmH29V-44AAAAd/tenor.gif",
+        "https://c.tenor.com/7xrOS-GaGAIAAAAd/tenor.gif",
+        "https://c.tenor.com/OGnRVWCps7IAAAAd/tenor.gif"
+    ];
+
     [SlashCommand("avatar", "Get the avatar of the specified user")]
     public async Task Avatar([Summary("user", "Specified user")] IUser? user = null)
     {
@@ -56,5 +82,69 @@ public class GeneralSlashCommands : InteractionModuleBase<SocketInteractionConte
         string result = rng > 50 ? "Heads!" : "Tails!";
 
         await RespondAsync(result);
+    }
+
+    [SlashCommand("headpat", "give headpats")]
+    public async Task CreateHeadPatButton()
+    {
+        const ulong myId = 119904333750861824;
+        var userId = configuration.GetValue<ulong>("OwnerID", myId);
+
+        var builder = new ComponentBuilderV2();
+
+        //ContainerBuilder container = new ContainerBuilder().WithAccentColor(Color.Magenta);
+
+        builder.WithActionRow(new ActionRowBuilder().WithButton(
+            label: $"Give Olli headpats",
+            customId: $"headpat:{userId}",
+            style: ButtonStyle.Primary,
+            emote: new Emoji("😻")));
+
+        //builder.WithContainer(container);
+
+        await Context.Interaction.RespondAsync(components: builder.Build());
+    }
+
+    [ComponentInteraction("headpat:*")]
+    public async Task HeadPat(string userId)
+    {
+        int randomIndex = Random.Shared.Next(GifCollection.Length);
+        var selectedGif = GifCollection[randomIndex];
+
+        //string? gifUrl = await gifProvider.GetRandomGifAsync("anime headpat", ct);
+
+        //var embed = new EmbedBuilder()
+        //    .WithTitle($"<@{Context.User.Id}> *headpats* <@{userId}> 🥺")
+        //    .WithImageUrl(selectedGif)
+        //    .WithColor(Color.Magenta)
+        //    .Build();
+
+        logger.LogInformation("Selected GIF: {selectedGif}", selectedGif);
+
+        var container = new ContainerBuilder().WithAccentColor(Color.Magenta)
+            .WithTextDisplay($"# <@{Context.User.Id}> *headpats* <@{userId}> \U0001f97a")
+            .WithMediaGallery(new MediaGalleryBuilder().AddItem(new MediaGalleryItemProperties
+            {
+                Media = new UnfurledMediaItemProperties
+                {
+                    Url = selectedGif,
+                }
+            }));
+
+        await Context.Interaction.RespondAsync(components: new ComponentBuilderV2().WithContainer(container).Build(), allowedMentions: AllowedMentions.None);
+    }
+
+    [SlashCommand("help", "Get a list of available commands")]
+    public async Task Help()
+    {
+        try
+        {
+            // create a component v2 message with buttons for each command
+            throw new NotImplementedException("Help command is not implemented yet.");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to process command");
+        }
     }
 }

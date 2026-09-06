@@ -4,7 +4,7 @@ using Discord.WebSocket;
 using MediatR;
 using OlliBot.Application.EmoteRanking.ClearEmoteRanking;
 using OlliBot.Application.EmoteRanking.UpdateEmoteRanking;
-using OlliBot.Bot.Utilities;
+using System.Text;
 
 namespace OlliBot.Bot.Modules.EmoteRanking;
 
@@ -12,6 +12,7 @@ namespace OlliBot.Bot.Modules.EmoteRanking;
 [Group("emoterank", "Commands for emote ranking")]
 public class EmoteRankingSlashCommands(
     ILogger<EmoteRankingSlashCommands> logger,
+    IKeyedSemaphore<(ulong, string)> keyedSemaphore,
     ISender sender) : InteractionModuleBase<SocketInteractionContext>
 {
     [SlashCommand("scan", "Scan emote rankings")]
@@ -19,6 +20,17 @@ public class EmoteRankingSlashCommands(
     {
         try
         {
+            // Prevents concurrent execution of this command for the same guild
+            var key = (Context.Guild.Id, nameof(UpdateAndDisplayEmoteRankingsAsync));
+            using IDisposable? lease = keyedSemaphore.TryAcquire(key);
+
+            if (lease is null)
+            {
+                await RespondAsync("Emote rankings are already being updated for this server.", ephemeral: true);
+
+                return;
+            }
+
             //All custom emotes in a server
             IReadOnlyCollection<GuildEmote> emotes = Context.Guild.Emotes;
 
@@ -48,9 +60,15 @@ public class EmoteRankingSlashCommands(
                 await Context.Channel.SendMessageAsync(result.Message);
             }
 
-            string formattedRankings = result.Counts != null ? Helpers.FormatEmoteRankings(result.Counts, emotes) : "No emote rankings available.";
+            if (result.Counts == null || result.Counts.Count == 0)
+            {
+                await Context.Channel.SendMessageAsync("No emote rankings available.");
+                return;
+            }
 
-            await Context.Channel.SendMessageAsync(formattedRankings);
+            var formattedRankings = EmoteRankingHelpers.CreateEmoteRankingComponent(result.Counts, emotes);
+
+            await Context.Channel.SendMessageAsync(components: formattedRankings.Build());
         }
         catch (Exception e)
         {
@@ -74,6 +92,37 @@ public class EmoteRankingSlashCommands(
                 "An error occurred while clearing emote ranking for {GuildId}",
                 Context.Guild.Id);
             await Context.Interaction.RespondAsync("An error occurred while clearing emote rankings.", ephemeral: true);
+        }
+    }
+
+    private static class EmoteRankingHelpers
+    {
+        internal static ComponentBuilderV2 CreateEmoteRankingComponent(
+            IReadOnlyDictionary<ulong, int> emoteCounts,
+            IReadOnlyCollection<GuildEmote> guildEmotes)
+        {
+            var emotesById = guildEmotes.ToDictionary(emote => emote.Id);
+            var rankings = new StringBuilder();
+
+            foreach ((ulong emoteId, int count) in emoteCounts.OrderByDescending(entry => entry.Value))
+            {
+                if (!emotesById.TryGetValue(emoteId, out GuildEmote? emote))
+                {
+                    // The emote may have been deleted after the scan.
+                    continue;
+                }
+
+                // GuildEmote.ToString() produces the Discord emote mention.
+                rankings.AppendLine($"## {emote} - {count}");
+            }
+
+            var container = new ContainerBuilder()
+                .WithAccentColor(Color.LightOrange)
+                .WithTextDisplay("# Emote Usage Ranking")
+                .WithSeparator(spacing: SeparatorSpacingSize.Large)
+                .WithTextDisplay(rankings.ToString());
+
+            return new ComponentBuilderV2().WithContainer(container);
         }
     }
 }

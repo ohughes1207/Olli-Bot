@@ -26,6 +26,8 @@ internal static class DependencyInjection
 
         services.AddTransient<IEmoteCountScanner, EmoteCountScanner>();
         services.AddTransient<IDiscordSubscriberValidater, DiscordSubscriberValidater>();
+        services.AddSingleton<IKeyedSemaphore<(ulong, string)>, KeyedSemaphore<(ulong, string)>>();
+
         return services;
     }
 

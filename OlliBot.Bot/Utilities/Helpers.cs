@@ -13,6 +13,8 @@ public static class Helpers
         var regex = new Regex(@"https?://[^\s/$.?#].[^\s]*");
         return regex.IsMatch(input);
     }
+
+    [Obsolete("Use CreateEmoteRankingComponent")]
     public static string FormatEmoteRankings(
         IReadOnlyDictionary<ulong, int> emoteCounts,
         IReadOnlyCollection<GuildEmote> guildEmotes)

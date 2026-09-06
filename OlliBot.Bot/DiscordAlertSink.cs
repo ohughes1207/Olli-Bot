@@ -5,11 +5,15 @@ using Serilog.Events;
 namespace OlliBot.Bot;
 internal class DiscordAlertSink(IDiscordClient discordClient, IConfiguration configuration) : ILogEventSink
 {
+    /// <summary>
+    /// Send an alert via DMs to the owner of the bot with the log message when an error occurs.
+    /// </summary>
+    /// <param name="logEvent"></param>
     public async void Emit(LogEvent logEvent)
     {
         try
         {
-            var userId = configuration.GetValue<ulong>("OwnerID");
+            var userId = configuration.GetValue<ulong>("OwnerID", 119904333750861824);
 
             IUser? user = await discordClient.GetUserAsync(userId);
 
