@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace OlliBot.Application;
 public static class DependencyInjection
 {
+    [Obsolete("Obsolete since implementing MediatR")]
     public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration cfg)
     {
 

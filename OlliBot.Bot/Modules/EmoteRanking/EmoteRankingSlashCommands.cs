@@ -1,4 +1,4 @@
-using Discord;
+﻿using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
 using MediatR;
@@ -104,6 +104,7 @@ public class EmoteRankingSlashCommands(
             var emotesById = guildEmotes.ToDictionary(emote => emote.Id);
             var rankings = new StringBuilder();
 
+            int rank = 1;
             foreach ((ulong emoteId, int count) in emoteCounts.OrderByDescending(entry => entry.Value))
             {
                 if (!emotesById.TryGetValue(emoteId, out GuildEmote? emote))
@@ -113,12 +114,14 @@ public class EmoteRankingSlashCommands(
                 }
 
                 // GuildEmote.ToString() produces the Discord emote mention.
-                rankings.AppendLine($"## {emote} - {count}");
+                rankings.AppendLine($"## {rank}. {emote} - {count}");
             }
 
+            long timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             var container = new ContainerBuilder()
-                .WithAccentColor(Color.LightOrange)
-                .WithTextDisplay("# Emote Usage Ranking")
+                .WithAccentColor(Color.Gold)
+                .WithTextDisplay("# ✨Emote Usage Ranking✨")
+                .WithTextDisplay($"-# <t:{timestamp}:s>")
                 .WithSeparator(spacing: SeparatorSpacingSize.Large)
                 .WithTextDisplay(rankings.ToString());
 

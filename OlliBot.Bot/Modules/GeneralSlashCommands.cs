@@ -64,8 +64,8 @@ public class GeneralSlashCommands(ILogger<GeneralSlashCommands> logger, IConfigu
         var embed = new EmbedBuilder();
 
         embed.WithTitle($"{nickname} ({member.Username}) server info");
-        embed.AddField("Account Created:", member.CreatedAt.ToString("yyyy/MM/dd  hh:mm"), true);
-        embed.AddField("Join date:", member.JoinedAt?.ToString("yyyy/MM/dd hh:mm") ?? "NULL", true);
+        embed.AddField("Account Created:", $"<t:{member.CreatedAt.ToUnixTimeSeconds()}:s>", true);
+        embed.AddField("Join date:", $"<t:{member.JoinedAt?.ToUnixTimeSeconds()}:s>", true);
         //embed.AddField("Current Activity:", $"{user.Presence.Activity.ActivityType. ?? "Nothing"}", true);
         //embed.WithColor(DiscordColor.Orange);
         embed.WithColor(new Color(252, 177, 3));
