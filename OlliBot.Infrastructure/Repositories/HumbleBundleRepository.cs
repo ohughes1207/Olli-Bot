@@ -84,4 +84,12 @@ public class HumbleBundleRepository(OlliBotDbContext db) : IHumbleBundleReposito
             .OrderByDescending(hb => hb.ExpiryDate)
             .FirstOrDefaultAsync();
     }
+
+    public async Task UpdateSubscriberRole(ulong discordId, ulong? roleId, CancellationToken cancellationToken)
+    {
+        await db.HumbleBundleSubscribers
+            .Where(x => x.DiscordId == discordId)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(x => x.RoleId, roleId), cancellationToken);
+    }
 }

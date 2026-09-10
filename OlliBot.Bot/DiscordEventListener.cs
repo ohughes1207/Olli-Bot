@@ -10,32 +10,32 @@ public class DiscordEventListener(IServiceScopeFactory serviceScope)
 {
     private readonly CancellationToken _cancellationToken = new CancellationTokenSource().Token;
 
-    private IMediator Mediator
+    private IPublisher Publisher
     {
         get
         {
             IServiceScope scope = serviceScope.CreateScope();
-            return scope.ServiceProvider.GetRequiredService<IMediator>();
+            return scope.ServiceProvider.GetRequiredService<IPublisher>();
         }
     }
 
     internal Task OnMessageReceivedAsync(SocketMessage message)
     {
-        return Mediator.Publish(new MessageReceivedNotification(message), _cancellationToken);
+        return Publisher.Publish(new MessageReceivedNotification(message), _cancellationToken);
     }
 
     internal Task OnInteractionCreated(SocketInteraction interaction)
     {
-        return Mediator.Publish(new InteractionCreatedNotification(interaction), _cancellationToken);
+        return Publisher.Publish(new InteractionCreatedNotification(interaction), _cancellationToken);
     }
 
     internal Task OnClientReady()
     {
-        return Mediator.Publish(new ClientReadyNotification(), _cancellationToken);
+        return Publisher.Publish(new ClientReadyNotification(), _cancellationToken);
     }
 
     internal Task OnCommandExecuted(ICommandInfo info, IInteractionContext context, IResult result)
     {
-        return Mediator.Publish(new CommandExecutedNotification(info, context, result), _cancellationToken);
+        return Publisher.Publish(new CommandExecutedNotification(info, context, result), _cancellationToken);
     }
 }

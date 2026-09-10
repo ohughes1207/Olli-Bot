@@ -23,4 +23,6 @@ public interface IHumbleBundleRepository
     Task<int> RemoveSubscriberAsync(ulong discordId, HumbleBundleType humbleBundleType, HumbleBundleSubscriberType subscriberType, CancellationToken cancellationToken);
 
     Task<Domain.Entities.HumbleBundle?> GetLatestBundle(HumbleBundleType bundleType);
+    
+    Task UpdateSubscriberRole(ulong discordId, ulong? roleId, CancellationToken cancellationToken);
 }

@@ -214,7 +214,7 @@ element => {
         return bundle;
     }
 
-    private decimal ExtractPrice(string priceHeader)
+    private static decimal ExtractPrice(string priceHeader)
     {
         Match match = Regex.Match(priceHeader, @"£(\d+(?:\.\d{1,2})?)");
 

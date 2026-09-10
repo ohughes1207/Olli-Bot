@@ -26,7 +26,6 @@ public class CheckForHumbleBundleUpdatesHandler(
 
         await CheckForExpiredBundles(scannedBundles, knownBundles, ct);
 
-
         if (newBundles.Length == 0)
         {
             return new CheckForHumbleBundleUpdatesResult(true, "No new bundles found", [], []);

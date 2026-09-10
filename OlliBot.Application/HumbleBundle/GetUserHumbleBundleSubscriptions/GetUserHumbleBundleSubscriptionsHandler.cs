@@ -10,6 +10,9 @@ public class GetUserHumbleBundleSubscriptionsHandler(
     {
         IReadOnlyList<Domain.Entities.HumbleBundleSubscriber> humbleBundleTypes = await humbleBundleRepository.GetSubscriptions(request.DiscordId, cancellationToken);
 
-        return new GetUserHumbleBundleSubscriptionsResult(humbleBundleTypes.Select(sub => sub.SubscriptionType).ToList(), humbleBundleTypes.Any());
+        return new GetUserHumbleBundleSubscriptionsResult(
+            humbleBundleTypes.Select(sub => sub.SubscriptionType).ToList(), 
+            humbleBundleTypes.Select(sub => sub.RoleId).FirstOrDefault(), 
+            true);
     }
 }

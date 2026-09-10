@@ -1,9 +1,10 @@
 ﻿using MediatR;
+using Microsoft.Extensions.Logging;
 using OlliBot.Application.HumbleBundle.Models;
 
 namespace OlliBot.Application.HumbleBundle.ScanHumbleBundle;
 
-public class ScanHumbleBundleHandler(IHumbleBundleScanner humbleBundleScanner) : IRequestHandler<ScanHumbleBundleCommand, ScanHumbleBundleResult>
+public class ScanHumbleBundleHandler(IHumbleBundleScanner humbleBundleScanner, ILogger<ScanHumbleBundleHandler> logger) : IRequestHandler<ScanHumbleBundleCommand, ScanHumbleBundleResult>
 {
     public async Task<ScanHumbleBundleResult> Handle(ScanHumbleBundleCommand command, CancellationToken ct = default)
     {

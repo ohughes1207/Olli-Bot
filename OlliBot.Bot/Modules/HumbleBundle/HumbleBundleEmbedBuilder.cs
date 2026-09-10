@@ -45,10 +45,17 @@ internal static class HumbleBundleEmbedBuilder
         return embedBuilder.Build();
     }
 
-    internal static MessageComponent CreateHumbleBundleComponentV2(ScannedHumbleBundle scannedHumbleBundle)
+    internal static MessageComponent CreateHumbleBundleComponentV2(ScannedHumbleBundle scannedHumbleBundle, string? roleMention = null)
     {
         var builder = new ComponentBuilderV2();
 
+        ContainerBuilder container = CreateHumbleBundleContainerComponent(scannedHumbleBundle, roleMention);
+
+        return builder.WithContainer(container).Build();
+    }
+
+    public static ContainerBuilder CreateHumbleBundleContainerComponent(ScannedHumbleBundle scannedHumbleBundle, string? roleMention = null)
+    {
         ContainerBuilder container = new ContainerBuilder().WithAccentColor(Color.Blue);
 
         ActionRowBuilder buttons = new ActionRowBuilder()
@@ -138,9 +145,14 @@ internal static class HumbleBundleEmbedBuilder
         container.WithActionRow(buttons);
 
         long timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        container.WithTextDisplay($"-# <t:{timestamp}:R>");
 
-        return builder.WithContainer(container).Build();
+        var mention = !string.IsNullOrWhiteSpace(roleMention)
+            ? $" {roleMention}"
+            : string.Empty;
+
+        container.WithTextDisplay($"-# <t:{timestamp}:R>{mention}");
+
+        return container;
     }
 
     private static string BuildEmbedFieldText(List<ScannedHumbleBundleItem> items)
