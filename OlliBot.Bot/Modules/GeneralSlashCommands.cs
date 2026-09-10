@@ -130,7 +130,12 @@ public class GeneralSlashCommands(ILogger<GeneralSlashCommands> logger, IConfigu
                 {
                     Url = selectedGif,
                 }
-            }));
+            }))
+            .WithActionRow(new ActionRowBuilder().WithButton(
+                label: $"Give Olli headpats",
+                customId: $"headpat:{userId}",
+                style: ButtonStyle.Primary,
+                emote: new Emoji("😻")));
 
         await Context.Interaction.RespondAsync(components: new ComponentBuilderV2().WithContainer(container).Build(), allowedMentions: AllowedMentions.None);
     }
